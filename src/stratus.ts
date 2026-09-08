@@ -5,10 +5,11 @@ import {view,motionScript,chartSummaryCss} from './views.ts';
 import type {History} from './history.ts';
 import {creatorThemeCss} from './creator-theme.ts';
 import {home,docs,connections,profilePage,layout,stratusCss,capabilities,STRATUS_ORIGIN} from './stratus-ui.ts';
+import {tiktokHandoff,purgeHandoffs} from './tiktok-handoff.ts';
 const json=(body:unknown,status=200)=>Response.json(body,{status});
 const html=(body:string,status=200)=>new Response(body,{status,headers:{'content-type':'text/html; charset=utf-8'}});
-// This Worker has no import secret, database write binding or provider token.
-// Only explicitly constructed public GET requests cross the service binding.
+// Analytics remain read-only. A separate expiring handoff DB stores encrypted
+// authorization codes; provider secrets/tokens never enter this Worker.
 async function collect(env:StratusEnv,path:string):Promise<Response>{
  return env.COLLECTOR.fetch(new Request('https://social-poller.internal'+path,{method:'GET',signal:AbortSignal.timeout(12000)}));
 }
@@ -20,6 +21,7 @@ async function data<T>(env:StratusEnv,path:string):Promise<T>{
 }
 async function route(request:Request,env:StratusEnv):Promise<Response>{
  const url=new URL(request.url),path=url.pathname;
+ if(path.startsWith('/auth/tiktok/'))return env.OAUTH_HANDOFFS?tiktokHandoff(request,env.OAUTH_HANDOFFS):json({error:'connection_setup_unavailable'},503);
  if(!['GET','HEAD'].includes(request.method))return json({error:'method_not_allowed'},405);
  if(path==='/stratus-logo.png')return env.BRAND_ASSETS.fetch(new Request('https://assets.internal/stratus-logo.png'));
  if(path==='/favicon.ico')return new Response(null,{status:204});
@@ -35,7 +37,7 @@ async function route(request:Request,env:StratusEnv):Promise<Response>{
  if(path==='/status/')return html(connections());
  if(path==='/v1/platforms')return json({platforms:capabilities});
  if(path==='/openapi.json'){
-  const schema=apiSchema();schema.info={...schema.info,title:'Stratus Social',version:'0.1.0',description:'Read-only public beta. No private analytics, OAuth enrollment or writes. YouTube is disabled.'};
+  const schema=apiSchema();schema.info={...schema.info,title:'Stratus Social',version:'0.1.0',description:'Read-only public beta. No private analytics or public enrollment/write API. Owner-assisted TikTok setup is separate. YouTube is disabled.'};
   const paths=Object.fromEntries(Object.entries(schema.paths).filter(([p])=>['/v1/search','/v1/profiles/{platform}/{username}','/v1/history/{platform}/{username}','/v1/content/{platform}/{username}','/v1/platforms'].includes(p)));
   return json({...schema,servers:[{url:STRATUS_ORIGIN}],paths,components:{}});
  }
@@ -69,7 +71,7 @@ export default {
   const url=new URL(request.url);let response:Response;
   try{
    if(request.method==='OPTIONS'&&url.pathname.startsWith('/v1/'))response=new Response(null,{status:204});
-   else if((url.pathname.startsWith('/v1/')||url.pathname==='/widget'||url.searchParams.has('username'))&&!(await env.STRATUS_READ_LIMIT.limit({key:request.headers.get('CF-Connecting-IP')||'service-binding'})).success)response=json({error:'rate_limited'},429);
+   else if((url.pathname.startsWith('/v1/')||url.pathname.startsWith('/auth/')||url.pathname==='/widget'||url.searchParams.has('username'))&&!(await env.STRATUS_READ_LIMIT.limit({key:request.headers.get('CF-Connecting-IP')||'service-binding'})).success)response=json({error:'rate_limited'},429);
    else response=await route(request,env);
   }catch(error){const reason=error instanceof URIError?'invalid_profile':error instanceof Error?error.message:'';response=json({error:reason==='invalid_profile'?'invalid_profile':reason==='rate_limited'?'rate_limited':'source_unavailable'},reason==='invalid_profile'?400:reason==='rate_limited'?429:503);}
   const headers=new Headers(response.headers),indexable=['/','/docs/','/status/'].includes(url.pathname)&&!url.search&&response.status===200;
@@ -77,10 +79,11 @@ export default {
   headers.set('x-content-type-options','nosniff');headers.set('referrer-policy','no-referrer');
   headers.set('content-security-policy',`default-src 'none'; connect-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors ${url.pathname==='/widget'?'*':"'none'"}`);
   headers.set('permissions-policy','camera=(), microphone=(), geolocation=()');
-  headers.set('cache-control',response.status>=400?'no-store':'public, max-age=60, must-revalidate');
+  headers.set('cache-control',url.pathname.startsWith('/auth/')||response.status>=400?'no-store':'public, max-age=60, must-revalidate');
   if(url.pathname.startsWith('/v1/')){headers.set('access-control-allow-origin','*');headers.set('access-control-allow-methods','GET, HEAD, OPTIONS');}
   if(response.status===429)headers.set('retry-after','60');
   if(request.method==='HEAD')await response.body?.cancel();
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
- }
+ },
+ async scheduled(_event,env){if(env.OAUTH_HANDOFFS)await purgeHandoffs(env.OAUTH_HANDOFFS);}
 } satisfies ExportedHandler<StratusEnv>;

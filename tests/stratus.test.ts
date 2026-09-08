@@ -12,7 +12,7 @@ const calls:Request[]=[];
 const env={STRATUS_READ_LIMIT:{limit:async()=>({success:true})},BRAND_ASSETS:{fetch:async()=>new Response('logo',{headers:{'content-type':'image/png'}})},COLLECTOR:{fetch:async(r:Request)=>{calls.push(r);return Response.json(r.url.includes('/creators/')?{profiles:[p]}:r.url.includes('/history/')?{platform:p.platform,username:p.username,metric:'followers',days:30,points:[],note:'No artificial history'}:p);}}} as unknown as StratusEnv;
 const request=(path:string,init?:RequestInit)=>worker.fetch(new Request('https://stratus.test'+path,init),env,{} as ExecutionContext);
 test('Stratus homepage, docs and coverage are indexable static HTML; query pages are not',async()=>{
- for(const path of ['/','/docs/','/status/']){const r=await request(path);assert.equal(r.status,200);assert.equal(r.headers.get('x-robots-tag'),'index, follow');const text=await r.text();assert.match(text,/<h1[ >]/);assert.match(text,/name="robots" content="index, follow"/);assert.match(text,/https:\/\/stratus-social.kc3wca.workers.dev/);}
+ for(const path of ['/','/docs/','/status/']){const r=await request(path);assert.equal(r.status,200);assert.equal(r.headers.get('x-robots-tag'),'index, follow');const text=await r.text();assert.match(text,/<h1[ >]/);assert.match(text,/name="robots" content="index, follow"/);assert.match(text,/https:\/\/stratussocial.mellozone.site/);}
  const query=await request('/?platform=bluesky&username='+p.username);assert.equal(query.status,200);assert.equal(query.headers.get('x-robots-tag'),'noindex, follow');assert.match(await query.text(),/content="noindex, follow"/);
  for(const path of ['/?tracking=x','/docs/?username=x','/status/?test=x'])assert.equal((await request(path)).status,308);
 });
@@ -28,7 +28,7 @@ test('no write endpoint, paid fallback, or YouTube collection crosses the bindin
  assert.equal((await request('/v1/profiles/youtube/'+owners.youtube)).status,403);assert.equal(calls.length,0);
  const schema=await (await request('/openapi.json')).json() as any;
  assert.ok(Object.values(schema.paths).every((v:any)=>!v.post));assert.doesNotMatch(JSON.stringify(schema.paths),/import|Bearer/);
- const config=readFileSync(new URL('../wrangler.stratus.jsonc',import.meta.url),'utf8');assert.doesNotMatch(config,/kv_namespaces|d1_databases|triggers|secrets/);
+ const config=JSON.parse(readFileSync(new URL('../wrangler.stratus.jsonc',import.meta.url),'utf8'));assert.equal(config.kv_namespaces,undefined);assert.equal(config.secrets,undefined);assert.equal(config.d1_databases.length,1);assert.equal(config.d1_databases[0].binding,'OAUTH_HANDOFFS');assert.equal(config.observability.logs.invocation_logs,false);
 });
 test('HEAD, CORS, CSP, input ranges, error responses and limiter fail closed',async()=>{
  const head=await request('/docs/',{method:'HEAD'});assert.equal(head.status,200);assert.equal(await head.text(),'');

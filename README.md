@@ -1,12 +1,21 @@
 # Stratus Social / Social Poller backend
 
-[Stratus Social](https://stratus-social.kc3wca.workers.dev/) is the separately
-deployed branded explorer. See its [developer guide](https://stratus-social.kc3wca.workers.dev/docs/)
+[Stratus Social](https://stratussocial.mellozone.site/) is the separately
+deployed branded explorer. See its [developer guide](https://stratussocial.mellozone.site/docs/)
 and [release notes](STRATUS-RELEASE.md). The existing `social-poller` Worker and
 repository name remain compatible with creator-site integrations.
 
 Creator-authorized connections are a [staged OAuth foundation](OAUTH-CONNECTIONS.md),
-not an enabled login. The [supplied X starter review](X-STARTER-REVIEW.md) records
+not an enabled public login. A separate owner-assisted TikTok consent handoff
+uses `https://stratus-social.kc3wca.workers.dev/auth/tiktok/callback`; it temporarily
+stores only encrypted authorization responses, not provider tokens. The creator
+repository's `astro/tools/connect-tiktok.mjs --publish` operator command verifies
+the grant and stores it in the existing Actions collector. Main site origin and
+registered callback origin intentionally differ. Apply the dedicated migration
+with `wrangler d1 migrations apply stratus-social-oauth-handoffs --remote -c
+wrangler.stratus.jsonc` before deploying this handoff.
+
+The [supplied X starter review](X-STARTER-REVIEW.md) records
 the earlier integration review. A separate bounded public-profile adapter is now
 deployed for the explicitly enrolled X identity only.
 

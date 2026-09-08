@@ -1,5 +1,18 @@
 # Changelog
 
+## Custom domain and TikTok consent handoff — 2026-09-08
+
+- Main origin, documentation examples and canonical URLs use the owner's
+  `https://stratussocial.mellozone.site` domain. Existing Worker URLs still serve.
+- Added a separate, bounded fifteen-minute D1 handoff for owner-assisted TikTok
+  consent. Codes are browser-bound, encrypted to the operator's temporary public
+  key and retrieved once. Platform secrets and tokens never enter this Worker.
+- The registered Worker callback is preserved exactly. Auth responses are
+  uncached, non-indexed and non-embeddable, with no referrer or CORS exposure.
+  Invocation URL logging is disabled; expired handoffs are purged on schedule.
+- Public analytics continue through the read-only collector binding. This is
+  not general multi-creator OAuth enrollment or proof of a completed grant.
+
 ## Independent collection recovery — 2026-09-08
 
 - A failed independent lookup no longer suppresses a valid published observation;

@@ -1,5 +1,24 @@
 # Regression log
 
+## Custom domain and TikTok handoff — 2026-09-08
+
+- Added one dedicated D1 database, `stratus-social-oauth-handoffs`, with a separate
+  migration directory. No analytics history or staged connection-vault tables
+  are changed. Only encrypted short-lived codes, hashed state/poll tokens and
+  public operator keys are stored; global capacity is fifty active handoffs.
+- Public key validation rejects private keys, weak sizes and malformed bodies.
+  Cookie/state binding, expiry, encrypted storage, atomic retrieval, repeated
+  callbacks, unsupported methods and no-store/noindex headers have tests.
+- Seventy-nine tests pass. Type checking caught generic Web Crypto return types;
+  using a random AES key with explicit import resolves the Worker type mismatch.
+- Main custom-domain configuration and callback origin are deliberately separate.
+  Actual migration, deployment and live checks remain pending below.
+- Type checking and both Worker dry-run builds passed. The dedicated migration
+  applied successfully; Stratus version 0e130985-6551-443e-9fa3-7311f764f1f7 is
+  live on the existing Worker hostname and the owner's custom domain. Callback
+  responses are 200/no-store/noindex/no-referrer. Home/docs canonicals use the
+  custom domain. No user grant has been claimed as successful yet.
+
 ## Independent GitHub publication recovery — 2026-09-08
 
 - Confirmed live anonymous lookup reports `upstream_limited` while the scheduled
@@ -9,7 +28,9 @@
   fetch, independent-source failure, expiry, same-source failure and withdrawal.
 - 76 unit tests pass; generated binding types, TypeScript check and Worker dry-run
   pass with Wrangler 4.127.1. No bindings, secrets, schemas or schedules changed.
-- Production deployment verification pending.
+- Production version ec165822-eb37-4b6e-a0ed-ed82bbe6a4eb verified. Actions
+  publication 34214777537 succeeded; live GitHub shows four followers, eight
+  following and nine public repositories with its source date intact.
 
 ## VPS operations container — 2026-09-08
 
