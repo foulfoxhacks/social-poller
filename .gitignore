@@ -1,0 +1,8 @@
+node_modules/
+.wrangler/
+.dev.vars*
+.env*
+worker-configuration.d.ts
+.evidence/
+dist/
+*.log

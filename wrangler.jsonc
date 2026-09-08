@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "social-poller",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "secrets": {"required": ["IMPORT_TOKEN"]},
+  "kv_namespaces": [{"binding": "SNAPSHOTS", "id": "4b686f3fc9444cc1b2ebe6ff1bafb66f"}],
+  "ratelimits": [
+    {"name": "READ_LIMIT", "namespace_id": "907001", "simple": {"limit": 60, "period": 60}},
+    {"name": "FETCH_LIMIT", "namespace_id": "907002", "simple": {"limit": 10, "period": 60}}
+  ],
+  "triggers": {"crons": ["47 * * * *"]},
+  "observability": {"enabled": true, "head_sampling_rate": 0.1}
+}
