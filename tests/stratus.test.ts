@@ -48,6 +48,12 @@ test('UI validates upstream identity and JSON type instead of presenting someone
  const r=await worker.fetch(new Request('https://test/widget?platform=bluesky&username='+p.username),wrong,{} as ExecutionContext);assert.equal(r.status,503);
  }
 });
+test('graph defaults select an observed metric and seven-day hourly range; explicit choices are preserved',async()=>{
+ const profile=empty('tiktok',owners.tiktok,at);profile.metrics.averageViews={...profile.metrics.averageViews,value:100,current:true,observedAt:at};
+ const seen:string[]=[];const fixture={...env,COLLECTOR:{fetch:async(r:Request)=>{seen.push(r.url);return Response.json(r.url.includes('/history/')?{platform:profile.platform,username:profile.username,metric:'averageViews',days:7,points:[],note:'Hourly'}:profile);}}} as unknown as StratusEnv;
+ let r=await worker.fetch(new Request('https://test/widget?platform=tiktok&username='+owners.tiktok+'&view=graph'),fixture,{} as ExecutionContext);assert.equal(r.status,200);assert.match(seen.at(-1)!,/metric=averageViews&days=7/);
+ r=await worker.fetch(new Request('https://test/widget?platform=tiktok&username='+owners.tiktok+'&view=graph&metric=followers&days=30'),fixture,{} as ExecutionContext);assert.equal(r.status,200);assert.match(seen.at(-1)!,/metric=followers&days=30/);
+});
 test('new charts separate URLs and sample sizes, preserve gaps and disclose the axis range',()=>{
  const point={observedAt:'2026-09-01T00:00:00Z',value:100,scope:'Account',precision:'exact' as const,sourceKind:'public_api',sourceUrl:'https://source.test/a',sampleSize:null};
  const data:History={platform:'bluesky',username:p.username,metric:'followers',days:30,note:'Actual observations',points:[point,{...point,observedAt:'2026-09-02T00:00:00Z',value:101}]};

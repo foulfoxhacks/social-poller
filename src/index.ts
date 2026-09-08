@@ -90,7 +90,7 @@ export default {
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
  },
  async scheduled(event,env){
-  const platforms=event.cron==='*/5 * * * *'?['twitch']:['github','bluesky'];
+  const platforms=event.cron==='*/5 * * * *'?['twitch',...(new Date(event.scheduledTime).getUTCMinutes()%10===0?['x']:[])]:['github','bluesky','x'];
   for(const platform of platforms)await lookup(env,platform,owners[platform],true);
   if(event.cron!=='*/5 * * * *'){await record(env,await creator(env));await prune(env);}
   console.log(JSON.stringify({event:'scheduled_refresh',providers:platforms}));

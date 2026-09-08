@@ -1,5 +1,19 @@
 # Changelog
 
+## Coverage and short-range charts — 2026-09-08
+
+- Added bounded, scheduled FxEmbed public X counts for the explicitly enrolled
+  creator only. No X login cookies, paid fallback or arbitrary-profile collection.
+  Sources and observation dates remain visible; no private analytics are inferred.
+- Seven-day history uses hourly observations; longer ranges keep daily readings.
+  SQL grouping now preserves source URLs and sample sizes as separate series.
+- A data-preserving migration widens observation identity to stop simultaneous
+  source/precision/sample readings from incorrectly deduplicating one another.
+- YouTube history is capped at thirty days, with read-time expiry as well as
+  scheduled deletion. The new Stratus public YouTube surface remains disabled.
+- Chart defaults and rotating displays prefer metrics with actual observations.
+- Regression results are recorded in REGRESSION-LOG.md as validation completes.
+
 ## Stratus Social beta — 2026-09-08
 
 - Added an isolated rootless VPS snapshot container: fixed public source,

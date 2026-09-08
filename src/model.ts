@@ -5,6 +5,7 @@ export type Profile = {schemaVersion:1;platform:string;username:string;profileUr
 export const SIX_HOURS=6*60*60*1000;
 export const TEN_MINUTES=10*60*1000;
 export const PUBLIC_PROVIDERS=['github','bluesky','twitch'];
+export const COLLECTED_PROVIDERS=[...PUBLIC_PROVIDERS,'x'];
 export const refreshInterval=(platform:string)=>platform==='twitch'?5*60*1000:TEN_MINUTES;
 export const OWNER='akasammythepuppy';
 export const OWNER_KEY='creator:'+OWNER;
@@ -44,6 +45,9 @@ export function freshness(profile:Profile,now=Date.now()):Profile {
   // Older KV snapshots may predate newly supported fields. Add unknown defaults
   // without rewriting saved observations, their provenance or reporting fields.
   copy.metrics={...empty(profile.platform,profile.username,profile.checkedAt).metrics,...copy.metrics};
+  if(profile.platform==='youtube')for(const [key,m] of Object.entries(copy.metrics)){
+    if(m.observedAt&&now-Date.parse(m.observedAt)>30*86400000)copy.metrics[key]={...m,value:null,observedAt:null,current:false};
+  }
   for(const m of Object.values(copy.metrics))m.current=m.current&&m.value!==null&&m.observedAt!==null&&now-Date.parse(m.observedAt)>=0&&now-Date.parse(m.observedAt)<=(m.source.kind==='third_party_api'?TEN_MINUTES:SIX_HOURS);
   for(const b of Object.values(copy.demographics||{}))b.current=b.current&&!!b.sampledAt&&now-Date.parse(b.sampledAt)>=0&&now-Date.parse(b.sampledAt)<=SIX_HOURS;
   const values=Object.values(copy.metrics);const available=values.filter(m=>m.current).length;
@@ -81,7 +85,7 @@ export function fromLegacy(data:unknown,kind:SourceKind='authorized_api',url='ht
     for(const key of fields[platform]){
       const m=object(metrics[key]),value=count(m.value),observedAt=date(m.sampledAt);
       if(value===null||!observedAt)continue;
-      p.metrics[key]={value,observedAt,current:m.current===true,precision:key.startsWith('average')||key==='sampleLikes'?'sample':platform==='youtube'&&key==='followers'?'rounded':'exact',scope:scope(key),source:{kind:['github','bluesky'].includes(platform)?'public_api':kind,url},...(key.startsWith('average')||key==='sampleLikes'?{sampleSize:count(m.sampleSize)}:{})};
+      p.metrics[key]={value,observedAt,current:m.current===true,precision:key.startsWith('average')||key==='sampleLikes'?'sample':platform==='youtube'&&key==='followers'?'rounded':'exact',scope:scope(key),source:{kind:['github','bluesky','youtube'].includes(platform)?'public_api':kind,url:platform==='youtube'?profileUrl(platform,owners[platform]):url},...(key.startsWith('average')||key==='sampleLikes'?{sampleSize:count(m.sampleSize)}:{})};
     }
     if(platform==='instagram'){
       p.demographics={};
@@ -101,7 +105,7 @@ export function fromLegacy(data:unknown,kind:SourceKind='authorized_api',url='ht
 export function toLegacy(profiles:Profile[]){
   return {version:1,generatedAt:new Date(Math.max(0,...profiles.map(p=>Date.parse(p.checkedAt)))).toISOString(),platforms:Object.fromEntries(Object.keys(owners).map(id=>{
     const p=freshness(profiles.find(p=>p.platform===id&&p.username===owners[id])||empty(id,owners[id]));
-    return [id,{checkedAt:p.checkedAt,metrics:Object.fromEntries(Object.entries(p.metrics).map(([key,m])=>[key,{value:m.value,sampledAt:m.observedAt,current:m.current,...(m.sampleSize!==undefined?{sampleSize:m.sampleSize}:{}),precision:m.precision,scope:m.scope,source:m.source}])),...(p.demographics?{demographics:p.demographics}:{})}];
+    return [id,{checkedAt:p.checkedAt,...(p.reason==='profile_not_public'?{withheld:true}:{}),metrics:Object.fromEntries(Object.entries(p.metrics).map(([key,m])=>[key,{value:m.value,sampledAt:m.observedAt,current:m.current,...(m.sampleSize!==undefined?{sampleSize:m.sampleSize}:{}),precision:m.precision,scope:m.scope,source:m.source}])),...(p.demographics?{demographics:p.demographics}:{})}];
   }))};
 }
 export function exportedProfile(data:unknown):Profile{

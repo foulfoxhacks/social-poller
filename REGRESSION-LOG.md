@@ -240,3 +240,18 @@
   styles, with no host overflow. The creator site's 26-route browser sweep and
   394 HTTP/cache checks passed; its media-kit mobile Lighthouse sample was
   100/100/100/100 (1.54 s LCP, 30 ms TBT, CLS 0).
+# 2026-09-08 — coverage follow-up (in progress)
+
+- Baseline: public creator bundle and history APIs return valid observations,
+  but daily buckets collapse same-day collection times.
+- FxEmbed public profile API returned code 200 for the enrolled X handle.
+- Added scheduled, bounded source-labeled X collection and hourly seven-day
+  history, preserving source URL/sample-size separation. 68 unit tests pass;
+  generated Worker types and TypeScript checks pass; both deployment dry-runs
+  pass (the sandbox build needed an approved filesystem escalation).
+- Saved the pre-migration public-aggregate backup under ignored .evidence/.
+  Applied 0002_source_aware_observations.sql remotely: 236 rows before and after.
+  The migration replaces the table structure while preserving its records.
+- VPS rootless snapshot service is active and healthy; last success at
+  2026-09-08T07:11:50.616Z, ~18.47 MB measured memory, 15-minute cadence.
+  It remains private and does not supply missing platform authorization.

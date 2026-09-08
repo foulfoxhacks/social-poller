@@ -44,14 +44,17 @@ async function route(request:Request,env:StratusEnv):Promise<Response>{
  if(parts||isSearch){
   const target=input(parts?decodeURIComponent(parts[2]):url.searchParams.get('platform')||'',parts?decodeURIComponent(parts[3]):url.searchParams.get('username')||'');
   if(target.platform==='youtube')return path.startsWith('/v1/')?json({error:'provider_not_enabled',reason:'redistribution_review_required'},403):html(layout('Connection unavailable','<h1>YouTube is not enabled.</h1><p>Public API redistribution and storage need a separate provider review.</p><a href="/status/">View enabled connections</a>'),403);
-  const mode=view(url.searchParams.get('view')),metric=url.searchParams.get('metric')||metricKeys(target.platform)[0]||'followers',days=Number(url.searchParams.get('days')||30);
+  const mode=view(url.searchParams.get('view')),requestedMetric=url.searchParams.get('metric');
+  let metric=requestedMetric||metricKeys(target.platform)[0]||'followers';
+  const days=Number(url.searchParams.get('days')||7);
   if((parts?.[1]==='history'||mode==='graph')&&(!metricKeys(target.platform).includes(metric)||![7,30,90,365].includes(days)))throw Error('invalid_profile');
   const profilePath=`/v1/profiles/${target.platform}/${encodeURIComponent(target.username)}`;
-  const historyPath=`/v1/history/${target.platform}/${encodeURIComponent(target.username)}?metric=${encodeURIComponent(metric)}&days=${days}`;
-  if(path.startsWith('/v1/'))return collect(env,parts?.[1]==='history'?historyPath:profilePath);
+  const historyPath=()=>`/v1/history/${target.platform}/${encodeURIComponent(target.username)}?metric=${encodeURIComponent(metric)}&days=${days}`;
+  if(path.startsWith('/v1/'))return collect(env,parts?.[1]==='history'?historyPath():profilePath);
   const p=freshness(await data<Profile>(env,profilePath));
   if(p.platform!==target.platform||p.username!==target.username)throw Error('source_unavailable');
-  const trend=mode==='graph'?await data<History>(env,historyPath):undefined;
+  if(!requestedMetric)metric=Object.entries(p.metrics).find(([,m])=>m.current&&m.value!==null)?.[0]||Object.entries(p.metrics).find(([,m])=>m.value!==null&&m.observedAt)?.[0]||metric;
+  const trend=mode==='graph'?await data<History>(env,historyPath()):undefined;
   return html(profilePage(p,mode,trend,path==='/widget',path==='/widget'&&url.searchParams.get('theme')==='creator'));
  }
  if(path==='/'){

@@ -38,11 +38,28 @@ test('independent source refresh does not erase imported reporting-period data',
  assert.equal(combine(p,empty('youtube',owners.youtube)).metrics.reach.value,123);
 });
 function database(){
- const db=new DatabaseSync(':memory:');db.exec(readFileSync(new URL('../migrations/0001_metric_history.sql',import.meta.url),'utf8'));
+ const db=new DatabaseSync(':memory:');db.exec(readFileSync(new URL('../migrations/0001_metric_history.sql',import.meta.url),'utf8'));db.exec(readFileSync(new URL('../migrations/0002_source_aware_observations.sql',import.meta.url),'utf8'));
  const prepare=(sql:string)=>{let values:unknown[]=[];return {bind(...args:unknown[]){values=args;return this;},async run(){db.prepare(sql).run(...values as any[]);return {success:true};},async all(){return {results:db.prepare(sql).all(...values as any[]),success:true};}};};
  const env={HISTORY:{prepare,async batch(statements:{run:()=>Promise<unknown>}[]){db.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());db.exec('COMMIT');return out;}catch(e){db.exec('ROLLBACK');throw e;}}}} as unknown as Env;
  return {env,db};
 }
+test('seven-day queries retain real hourly readings and distinct sample/source series',async()=>{
+ const {env,db}=database();const p=exportedProfile({platform:'tiktok',username:owners.tiktok,observedAt:at,metrics:{followers:10}});
+ const before=structuredClone(p);before.metrics.followers.observedAt=new Date(Date.parse(at)-3600000).toISOString();
+ const other=structuredClone(p);other.metrics.followers.source.url='https://www.tiktok.com/@akasammythepuppy?source=export';
+ const sampled=structuredClone(p);sampled.metrics.followers.sampleSize=12;
+ await record(env,[p,before,other,sampled]);
+ // Different precision/source/sample identities survive even at the same time.
+ sampled.metrics.followers.observedAt=new Date(Date.parse(at)-60000).toISOString();await record(env,[sampled]);
+ const hourly=await history(env,'tiktok',owners.tiktok,'followers',7);
+ assert.equal(hourly.resolution,'hour');assert.equal(hourly.points.length,4);assert.equal(hourly.points[0].observedAt,before.metrics.followers.observedAt);
+ assert.match(hourly.note,/Hourly/);db.close();
+});
+test('YouTube snapshots older than thirty days cannot be recorded or returned',async()=>{
+ const {env,db}=database();const p=empty('youtube',owners.youtube);p.metrics.followers={...p.metrics.followers,value:10,current:true,observedAt:new Date(Date.now()-31*86400000).toISOString()};
+ await record(env,[p]);assert.equal((await history(env,'youtube',owners.youtube,'followers',365)).points.length,0);
+ assert.match((await history(env,'youtube',owners.youtube)).note,/30 days/);db.close();
+});
 test('SQL history deduplicates retries, separates sources and scopes, excludes unknown profiles and retains real times',async()=>{
  const {env,db}=database();
  const p=exportedProfile({platform:'youtube',username:owners.youtube,observedAt:at,metrics:{followers:0}});
