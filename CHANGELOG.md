@@ -1,5 +1,10 @@
 # Changelog
 
+## Platform content expansion — 2026-09-08
+
+- Removed LinkedIn from the supported statistics dataset, owner registry and
+  lookup/import schema at the owner's request. Other platform records remain.
+
 ## Coverage and short-range charts — 2026-09-08
 
 - Added bounded, scheduled FxEmbed public X counts for the explicitly enrolled
@@ -149,3 +154,10 @@ Non-API updates need owner-exported data; scheduled connections remain available
 
 Deployment and browser verification are recorded in REGRESSION-LOG.md after
 they run. This release does not promise every platform exposes every metric.
+## 2026-09-08 — Bounded platform content
+
+- Added authenticated `/v1/import/content` replacement/withdrawal and read-only `/v1/content/{platform}/{username}`. Only enrolled accounts and allowlisted public fields are accepted. No visitor-triggered collection.
+- Keep up to twenty records and two comparable samples; expire at the older observation's 24-hour deadline. Missing/deleted records are removed on replacement, including the previous sample. Unknown metrics stay null.
+- Add same-source observed changes and explicitly defined public interactions; do not derive these for YouTube. Stratus continues blocking YouTube public API redistribution.
+- LinkedIn is removed from the current registry. Facebook is a personal profile: Page likes are no longer exposed. Optional Kick current-viewer observations now pass through the sanitized aggregate importer.
+- Updated public API documentation. Initial regression checks passed; final release checks recorded in the creator regression log.

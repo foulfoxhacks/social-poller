@@ -53,7 +53,7 @@ test('X parses only same-profile labeled count links, not bio or post likes',()=
 });
 test('Facebook only accepts identified profile JSON-LD aggregate interactions',()=>{
  const p=parseSavedPage(`<script type="application/ld+json">${JSON.stringify({'@type':'ProfilePage',mainEntity:{'@type':'Person',url:'https://www.facebook.com/example',interactionStatistic:[{interactionType:{'@type':'FollowAction'},userInteractionCount:100},{interactionType:'https://schema.org/LikeAction',userInteractionCount:90}],email:'private'}})}</script>`,'facebook',name,when);
- assert.deepEqual(p.observation.metrics,{followers:100,likes:90});assert.doesNotMatch(JSON.stringify(p),/email|private/);
+ assert.deepEqual(p.observation.metrics,{followers:100});assert.doesNotMatch(JSON.stringify(p),/email|private/);
  assert.throws(()=>parseSavedPage('<p>999 followers</p>','facebook',name,when),/identity/);
 });
 test('conflicting canonical identity and count sources are rejected',()=>{

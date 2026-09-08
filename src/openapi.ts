@@ -6,6 +6,8 @@ export function apiSchema(){
  return {openapi:'3.1.0',info:{title:'Social Poller',version:'0.2.0',description:'Public profile lookups, owner-exported aggregates, dated metric history and isolated visual widgets. Private analytics are never exposed for arbitrary user searches.'},paths:{
   '/v1/search':{get:{summary:'Exact platform username lookup',parameters:[{...pathParameters[0],in:'query'},{...pathParameters[1],in:'query'}],responses}},
   '/v1/profiles/{platform}/{username}':{get:{parameters:pathParameters,responses}},
+  '/v1/content/{platform}/{username}':{get:{summary:'Up to 20 recent public content records for an enrolled account; observed times, raw counters and same-source interval changes, not platform-wide trends. Expires after 24 hours. YouTube is disabled on the Stratus public surface.',parameters:pathParameters,responses}},
+  '/v1/import/content':imports('Replace one enrolled creator recent-content sample (maximum 20 records), or withdraw it; two bounded observations retained at most 24 hours'),
   '/v1/history/{platform}/{username}':{get:{summary:'Daily last observed values, separated by source / scope / precision; registered owners only',parameters:[...pathParameters,{in:'query',name:'metric',schema:{type:'string',enum:[...new Set(Object.keys(fields).flatMap(metricKeys))],default:'followers'}},{in:'query',name:'days',schema:{type:'integer',enum:[7,30,90,365],default:30}}],responses}},
   '/v1/platforms':{get:{responses}},'/v1/creators/akasammythepuppy':{get:{responses}},'/v1/media-kit/akasammythepuppy':{get:{responses}},
   '/v1/import/media-kit':imports('Existing version-1 sanitized creator snapshot'),

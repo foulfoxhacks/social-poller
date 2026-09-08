@@ -15,11 +15,11 @@ export const fields:Record<string,string[]>={
   tiktok:['followers','following','posts','likes','averageViews','averageLikes','averageComments'],
   youtube:['followers','posts','views'],twitch:['followers','viewers'],bluesky:['followers','following','posts'],
   x:['followers','following','posts'],github:['followers','following','repositories','stars'],
-  facebook:['followers','likes'],kick:['followers','viewers'],reddit:['karma'],linkedin:['followers'],
+  facebook:['followers'],kick:['followers','viewers'],reddit:['karma'],
   vrchat:[],steam:[],playstation:[],spotify:[]
 };
-export const owners:Record<string,string>={instagram:OWNER,tiktok:OWNER,youtube:OWNER,twitch:OWNER,bluesky:'akasammythepuppy.me',x:'akasammythepup',github:'foulfoxhacks',facebook:OWNER,kick:OWNER,reddit:'luvzfurrz01998',linkedin:'foulfoxhacks',vrchat:'usr_bd9e07ff-9706-42ca-9715-1cb5a76e3c72',steam:OWNER,playstation:'itscutiesammyowo',spotify:'2z4kruowiuhpf3w0vvhmhdpoz'};
-export const names:Record<string,string>={instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',twitch:'Twitch',bluesky:'Bluesky',x:'X',github:'GitHub',facebook:'Facebook',kick:'Kick',reddit:'Reddit',linkedin:'LinkedIn',vrchat:'VRChat',steam:'Steam',playstation:'PlayStation',spotify:'Spotify'};
+export const owners:Record<string,string>={instagram:OWNER,tiktok:OWNER,youtube:OWNER,twitch:OWNER,bluesky:'akasammythepuppy.me',x:'akasammythepup',github:'foulfoxhacks',facebook:OWNER,kick:OWNER,reddit:'luvzfurrz01998',vrchat:'usr_bd9e07ff-9706-42ca-9715-1cb5a76e3c72',steam:OWNER,playstation:'itscutiesammyowo',spotify:'2z4kruowiuhpf3w0vvhmhdpoz'};
+export const names:Record<string,string>={instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',twitch:'Twitch',bluesky:'Bluesky',x:'X',github:'GitHub',facebook:'Facebook',kick:'Kick',reddit:'Reddit',vrchat:'VRChat',steam:'Steam',playstation:'PlayStation',spotify:'Spotify'};
 export const labels:Record<string,string>={followers:'Followers / subscribers',following:'Following',posts:'Posts / public videos',likes:'Account likes',sampleLikes:'Likes on sampled posts',averageLikes:'Average likes',averageComments:'Average comments',averageViews:'Average views',views:'Lifetime views',viewers:'Live viewers',repositories:'Public repositories',stars:'Public repository stars',karma:'Karma'};
 export const reportLabels:Record<string,string>={periodViews:'Views in reporting period',reach:'Accounts reached in reporting period',impressions:'Impressions in reporting period',engagements:'Interactions in reporting period',watchSeconds:'Watch time (seconds) in reporting period',linkClicks:'Link clicks in reporting period',shares:'Shares in reporting period',saves:'Saves in reporting period'};
 export const metricKeys=(platform:string)=>[...(fields[platform]||[]),...(fields[platform]?.length?Object.keys(reportLabels):[])];
@@ -34,7 +34,7 @@ export function input(platform:string,raw:string):{platform:string;username:stri
   return {platform,username};
 }
 export function profileUrl(platform:string,username:string):string {
-  const prefixes:Record<string,string>={instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/@',youtube:'https://www.youtube.com/@',twitch:'https://www.twitch.tv/',bluesky:'https://bsky.app/profile/',x:'https://x.com/',github:'https://github.com/',facebook:'https://www.facebook.com/',kick:'https://kick.com/',reddit:'https://www.reddit.com/user/',linkedin:'https://www.linkedin.com/in/',vrchat:'https://vrchat.com/home/user/',steam:'https://steamcommunity.com/id/',playstation:'https://profile.playstation.com/',spotify:'https://open.spotify.com/user/'};
+  const prefixes:Record<string,string>={instagram:'https://www.instagram.com/',tiktok:'https://www.tiktok.com/@',youtube:'https://www.youtube.com/@',twitch:'https://www.twitch.tv/',bluesky:'https://bsky.app/profile/',x:'https://x.com/',github:'https://github.com/',facebook:'https://www.facebook.com/',kick:'https://kick.com/',reddit:'https://www.reddit.com/user/',vrchat:'https://vrchat.com/home/user/',steam:'https://steamcommunity.com/id/',playstation:'https://profile.playstation.com/',spotify:'https://open.spotify.com/user/'};
   return prefixes[platform]+encodeURIComponent(username);
 }
 export function scope(key:string):string {return key.startsWith('average')||key==='sampleLikes'?'lifetime counters on a recent-post sample':key==='viewers'?'concurrent at observation':key==='stars'?'sum on owned public repositories':'account total at observation';}
@@ -46,6 +46,7 @@ export function freshness(profile:Profile,now=Date.now()):Profile {
   // Older KV snapshots may predate newly supported fields. Add unknown defaults
   // without rewriting saved observations, their provenance or reporting fields.
   copy.metrics={...empty(profile.platform,profile.username,profile.checkedAt).metrics,...copy.metrics};
+  if(profile.platform==='facebook')delete copy.metrics.likes; // Confirmed personal profile, not a Page.
   if(profile.platform==='youtube')for(const [key,m] of Object.entries(copy.metrics)){
     if(m.observedAt&&now-Date.parse(m.observedAt)>30*86400000)copy.metrics[key]={...m,value:null,observedAt:null,current:false};
   }
@@ -81,7 +82,7 @@ export function fromLegacy(data:unknown,kind:SourceKind='authorized_api',url='ht
   const root=object(data),platforms=object(root.platforms),generatedAt=date(root.generatedAt);
   if(root.version!==1||!generatedAt||Object.keys(platforms).length>20||!['instagram','tiktok','youtube','twitch','bluesky','x','github'].every(id=>Object.hasOwn(platforms,id)))throw Error('invalid_snapshot');
   const result:Profile[]=[];
-  for(const platform of ['instagram','tiktok','youtube','twitch','bluesky','x','github']){
+  for(const platform of ['instagram','tiktok','youtube','twitch','bluesky','x','github',...(Object.hasOwn(platforms,'kick')?['kick']:[])]){
     const p=empty(platform,owners[platform],generatedAt),source=object(platforms[platform]),metrics=object(source.metrics);
     for(const key of fields[platform]){
       const m=object(metrics[key]),value=count(m.value),observedAt=date(m.sampledAt);

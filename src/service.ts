@@ -64,6 +64,7 @@ export async function lookup(env:Env,platform:string,username:string,force=false
     next.reason=allowed.includes(reason)?reason:'upstream_unavailable';
     if(platform==='x'&&reason==='profile_not_public'){
       next={...empty(platform,username),reason};
+      await env.SNAPSHOTS.delete(`content:x:${username}`);
       if(env.HISTORY)await env.HISTORY.prepare('DELETE FROM observations WHERE platform=? AND username=?').bind(platform,username).run();
     }
   }

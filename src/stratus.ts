@@ -31,15 +31,15 @@ async function route(request:Request,env:StratusEnv):Promise<Response>{
  if(path==='/sitemap.xml')return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/','/docs/','/status/'].map(p=>`<url><loc>${STRATUS_ORIGIN}${p}</loc></url>`).join('')}</urlset>`,{headers:{'content-type':'application/xml'}});
  if(['/docs','/status'].includes(path))return new Response(null,{status:308,headers:{location:path+'/'}});
  if(['/','/docs/','/status/'].includes(path)&&url.search&&(path!=='/'||!url.searchParams.has('username')))return new Response(null,{status:308,headers:{location:path}});
- if(path==='/docs/')return html(docs());
+ if(path==='/docs/')return html(docs().replace('</main>',`<section class="doc" id="content"><h2>5. Recent content &amp; observed changes</h2><pre><code>GET /v1/content/{platform}/{username}</code></pre><p><a href="/v1/content/tiktok/akasammythepuppy">Inspect the enrolled TikTok sample</a>. This returns up to 20 public records, raw counters, source, observation time and sample coverage. Only enrolled accounts with a published sample have results; other searches return connection_required.</p><p>Sort the sample by a supplied raw counter or public interactions. Interactions sum the response’s interactionFields, not an official engagement rate. change compares the same post across two compatible observations within 24 hours. Missing change is not zero growth; these are observed gains, not platform-wide trending rankings.</p><p>Samples expire after 24 hours and absent posts are removed on refresh. Do not retain returned content indefinitely. YouTube content is disabled on this Stratus API. Kick covers its current broadcast, not a video archive. Facebook is a personal profile with no connected analytics grant. Reddit requires approved access; a Devvit starter is not an external API token.</p></section></main>`));
  if(path==='/status/')return html(connections());
  if(path==='/v1/platforms')return json({platforms:capabilities});
  if(path==='/openapi.json'){
   const schema=apiSchema();schema.info={...schema.info,title:'Stratus Social',version:'0.1.0',description:'Read-only public beta. No private analytics, OAuth enrollment or writes. YouTube is disabled.'};
-  const paths=Object.fromEntries(Object.entries(schema.paths).filter(([p])=>['/v1/search','/v1/profiles/{platform}/{username}','/v1/history/{platform}/{username}','/v1/platforms'].includes(p)));
+  const paths=Object.fromEntries(Object.entries(schema.paths).filter(([p])=>['/v1/search','/v1/profiles/{platform}/{username}','/v1/history/{platform}/{username}','/v1/content/{platform}/{username}','/v1/platforms'].includes(p)));
   return json({...schema,servers:[{url:STRATUS_ORIGIN}],paths,components:{}});
  }
- const parts=path.match(/^\/v1\/(profiles|history)\/([^/]+)\/([^/]+)$/);
+ const parts=path.match(/^\/v1\/(profiles|history|content)\/([^/]+)\/([^/]+)$/);
  const isSearch=path==='/v1/search'||path==='/widget'||path==='/'&&url.searchParams.has('username');
  if(parts||isSearch){
   const target=input(parts?decodeURIComponent(parts[2]):url.searchParams.get('platform')||'',parts?decodeURIComponent(parts[3]):url.searchParams.get('username')||'');
@@ -50,7 +50,7 @@ async function route(request:Request,env:StratusEnv):Promise<Response>{
   if((parts?.[1]==='history'||mode==='graph')&&(!metricKeys(target.platform).includes(metric)||![7,30,90,365].includes(days)))throw Error('invalid_profile');
   const profilePath=`/v1/profiles/${target.platform}/${encodeURIComponent(target.username)}`;
   const historyPath=()=>`/v1/history/${target.platform}/${encodeURIComponent(target.username)}?metric=${encodeURIComponent(metric)}&days=${days}`;
-  if(path.startsWith('/v1/'))return collect(env,parts?.[1]==='history'?historyPath():profilePath);
+  if(path.startsWith('/v1/'))return collect(env,parts?.[1]==='content'?`/v1/content/${target.platform}/${encodeURIComponent(target.username)}`:parts?.[1]==='history'?historyPath():profilePath);
   const p=freshness(await data<Profile>(env,profilePath));
   if(p.platform!==target.platform||p.username!==target.username)throw Error('source_unavailable');
   if(!requestedMetric)metric=Object.entries(p.metrics).find(([,m])=>m.current&&m.value!==null)?.[0]||Object.entries(p.metrics).find(([,m])=>m.value!==null&&m.observedAt)?.[0]||metric;

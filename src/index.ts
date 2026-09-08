@@ -7,6 +7,7 @@ import {page,css,embedScript} from './ui.ts';
 import {creatorThemeCss} from './creator-theme.ts';
 import {view,viewCss,motionScript,chartSummaryCss} from './views.ts';
 import {history,record,prune} from './history.ts';
+import {content,saveContent,withdrawContent} from './content.ts';
 
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8'}});
 async function authenticated(request:Request,token:string):Promise<boolean>{
@@ -22,6 +23,11 @@ async function route(request:Request,env:Env):Promise<Response>{
   if(!await authenticated(request,env.IMPORT_TOKEN))return json({error:'unauthorized'},401);
   if(!(request.headers.get('content-type')||'').startsWith('application/json'))return json({error:'json_required'},415);
   const data:unknown=JSON.parse(await boundedText(new Response(request.body,{headers:request.headers}),65536));
+  if(u.pathname==='/v1/import/content'){
+    const body=object(data);
+    if(body.withdraw===true){const target=input(String(body.platform||''),String(body.username||''));await withdrawContent(env,target.platform,target.username);return json({withdrawn:true});}
+    return json({accepted:await saveContent(env,data)});
+  }
   if(u.pathname==='/v1/import/export') {
     const observations=object(data).observations;
     if(!Array.isArray(observations)||!observations.length||observations.length>10)throw Error('invalid_export');
@@ -49,6 +55,8 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(u.pathname===`/v1/media-kit/${OWNER}`){const saved=await creator(env);return saved.length?json(toLegacy(saved)):json({error:'snapshot_not_ready'},503);}
  if(u.pathname===`/v1/creators/${OWNER}`){const saved=await creator(env);return json({schemaVersion:1,creator:OWNER,profiles:Object.entries(owners).map(([id,name])=>freshness(saved.find(p=>p.platform===id&&p.username===name)||empty(id,name))),note:'Known official accounts only. Audience sums are not unique people.'});}
  let target:{platform:string;username:string}|undefined;
+ const contentParts=u.pathname.match(/^\/v1\/content\/([^/]+)\/([^/]+)$/);
+ if(contentParts){const target=input(decodeURIComponent(contentParts[1]),decodeURIComponent(contentParts[2]));return json(await content(env,target.platform,target.username));}
  const parts=u.pathname.match(/^\/v1\/(?:profiles|history)\/([^/]+)\/([^/]+)$/);
  if(parts)target=input(decodeURIComponent(parts[1]),decodeURIComponent(parts[2]));
  else if(['/v1/search','/widget'].includes(u.pathname)||u.pathname==='/'&&u.searchParams.has('username'))target=input(u.searchParams.get('platform')||'',u.searchParams.get('username')||'');
@@ -76,7 +84,7 @@ export default {
    else response=await route(request,env);
   }catch(error){
    const reason=error instanceof Error?error.message:'';
-   const errors=['invalid_profile','invalid_snapshot','unapproved_owner','invalid_metric','invalid_observation_date','empty_export','payload_too_large','older_snapshot','invalid_export','invalid_reporting_period','invalid_history_query'];
+   const errors=['invalid_profile','invalid_snapshot','invalid_content','unapproved_owner','invalid_metric','invalid_observation_date','empty_export','payload_too_large','older_snapshot','invalid_export','invalid_reporting_period','invalid_history_query'];
    response=json({error:errors.includes(reason)?reason:error instanceof SyntaxError?'invalid_json':'service_unavailable'},errors.includes(reason)||error instanceof SyntaxError?400:503);
   }
   const headers=new Headers(response.headers);

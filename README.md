@@ -31,7 +31,7 @@ bypasses, CAPTCHA workarounds, cookie harvesting, or fabricated counters are use
 | Twitch, exact username | Followers and concurrent viewers through DecAPI; Sammy's resolved account ID is pinned | Keyless third-party API, five-minute cache; Sammy refreshed every five minutes |
 | Sammy's enrolled public X identity | Followers, following and post totals | Bounded FxEmbed public API snapshot, five-minute schedule; no arbitrary-account collection |
 | YouTube | Normalized fields ready; the creator site's collector needs a working API key | Existing collector when configured; Stratus public redistribution remains disabled |
-| Facebook, Kick, Reddit, LinkedIn | Registered owner metric imports; no automated general lookup yet | Authenticated aggregate export |
+| Facebook, Kick, Reddit | Registered owner metric imports; no automated general lookup yet | Authenticated aggregate export |
 | VRChat, Steam, PlayStation, Spotify listener profile | Official profile links only; no configured audience counters | Profile directory |
 
 Twitch counters come from [DecAPI's documented endpoints](https://docs.decapi.me/twitch),
@@ -320,3 +320,10 @@ public repository visibility alone is not an open-source license.
 - [Cloudflare service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/)
 - [Cloudflare KV consistency](https://developers.cloudflare.com/kv/concepts/how-kv-works/)
 - [Native request limiting](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
+## Recent content API
+
+`GET /v1/content/{platform}/{username}` returns a registered creator's current sample or an explicit `connection_required` state. It does not fetch upstream on demand. The creator site's scheduled collector publishes up to twenty allowlisted public records using the import secret; public consumers receive no provider credentials. `POST /v1/import/content` replaces a sample, or accepts `{platform, username, withdraw: true}` to delete it.
+
+Responses include source, observed time, `coverage: recent_sample`, sample size, raw counters, `interactionFields` and nullable per-post `change`. Rank only within this sample. Interactions are a declared sum, not an official engagement rate. Interval changes require matching post ID/URL and source across two real readings. YouTube gets no derived interaction/change values and remains blocked on Stratus's public API. Kick is a current-broadcast sample, not an archive. Facebook is a personal profile with no Page connector. Reddit requires separately approved access; Devvit authentication cannot be reused as a general external Data API token.
+
+KV stores at most two samples, with expiry at the older observation's 24-hour deadline. Missing records are removed from both samples at replacement. Current means observed within six hours, not real-time upstream measurement. The media kit's copper/gold charts use the same API fields without presenting missing values as zero. Developer output and public access do not grant unlimited retention or redistribution rights.
