@@ -30,3 +30,8 @@
 - Public repository CI run 34176399804 passed. Creator workflow 34176494518
   successfully published seven sanitized platform snapshots through the import
   API. Its platform credentials were not transferred to this repository/Worker.
+- Cross-origin embed.js integration passed on a controlled 390px host page: the
+  lazy iframe loaded all four GitHub fields, its own refresh script and isolated
+  styles, with no host overflow. The creator site's 26-route browser sweep and
+  394 HTTP/cache checks passed; its media-kit mobile Lighthouse sample was
+  100/100/100/100 (1.54 s LCP, 30 ms TBT, CLS 0).
