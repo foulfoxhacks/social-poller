@@ -1,11 +1,12 @@
-import {empty,freshness,merge,combine,owners,OWNER_KEY,TEN_MINUTES,type Profile} from './model.ts';
+import {empty,freshness,merge,combine,owners,OWNER_KEY,PUBLIC_PROVIDERS,refreshInterval,type Profile} from './model.ts';
 import {publicProfile} from './providers.ts';
+import {twitchProfile} from './twitch.ts';
 import {record} from './history.ts';
 
 // Independent source namespaces prevent public refreshes or manual exports from
 // overwriting the richer aggregate snapshot owned by the Actions publisher.
 export async function creator(env:Env):Promise<Profile[]> {
-  const keys=Object.entries(owners).flatMap(([p,u])=>[`export:${p}:${u}`,...(['github','bluesky'].includes(p)?[`lookup:${p}:${u}`]:[])]);
+  const keys=Object.entries(owners).flatMap(([p,u])=>[`export:${p}:${u}`,...(PUBLIC_PROVIDERS.includes(p)?[`lookup:${p}:${u}`]:[])]);
   const [base,sources]=await Promise.all([env.SNAPSHOTS.get<Profile[]>(OWNER_KEY,'json'),env.SNAPSHOTS.get<Profile>(keys,'json')]);
   const imported=base||[];
   const result:Profile[]=[];
@@ -13,7 +14,7 @@ export async function creator(env:Env):Promise<Profile[]> {
     let profile=imported.find(p=>p.platform===platform&&p.username===username);
     const exported=sources.get(`export:${platform}:${username}`);
     if(exported)profile=combine(profile,exported);
-    if(['github','bluesky'].includes(platform)) {
+    if(PUBLIC_PROVIDERS.includes(platform)) {
       const cached=sources.get(`lookup:${platform}:${username}`);
       if(cached)profile=combine(profile,cached);
     }
@@ -43,17 +44,17 @@ export async function lookup(env:Env,platform:string,username:string,force=false
   const cached=await env.SNAPSHOTS.get<Profile>(key,'json')||undefined;
   const imported=owners[platform]===username?(await creator(env)).find(p=>p.platform===platform):undefined;
   const saved=cached?combine(imported,cached):imported;
-  if(!['github','bluesky'].includes(platform)) {
+  if(!PUBLIC_PROVIDERS.includes(platform)) {
     const result=freshness(saved||empty(platform,username));
     if(!saved)result.reason='connection_or_owner_export_required';
     return result;
   }
-  if(!force&&cached&&Date.now()-Date.parse(cached.checkedAt)<TEN_MINUTES)return freshness(saved||cached);
+  if(!force&&cached&&Date.now()-Date.parse(cached.checkedAt)<refreshInterval(platform))return freshness(saved||cached);
   if(!(await env.FETCH_LIMIT.limit({key:'public-provider-budget'})).success) {
     const p=freshness(saved||empty(platform,username));p.reason='refresh_budget_limited';return p;
   }
   let next:Profile;
-  try{next=merge(cached,await publicProfile(platform,username));}
+  try{next=merge(cached,await (platform==='twitch'?twitchProfile(username):publicProfile(platform,username)));}
   catch(error) {
     next=structuredClone(cached||empty(platform,username));next.checkedAt=new Date().toISOString();
     for(const m of Object.values(next.metrics))m.current=false;

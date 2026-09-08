@@ -13,10 +13,20 @@ workarounds, cookie harvesting, or fabricated counters are used.
 | Bluesky, any exact handle | Followers, following, posts | Public AppView API, ten-minute lookup cache |
 | Sammy's connected Instagram | Followers, following, posts, recent-post sample likes/averages, approved aggregate age/gender/country insights | Existing authenticated hourly collector publishes sanitized aggregates |
 | Sammy's connected TikTok | Whatever the granted scopes return; currently recent-video sample averages | Existing authenticated hourly collector |
-| Sammy's Twitch | Live viewers with app authorization; followers need an authorized user token | Existing authenticated hourly collector |
+| Twitch, exact username | Followers and concurrent viewers through DecAPI; Sammy's resolved account ID is pinned | Keyless third-party API, five-minute cache; Sammy refreshed every five minutes |
 | YouTube, X | Normalized fields ready; automated data needs their API authorization | Existing collector when configured, or owner export |
 | Facebook, Kick, Reddit, LinkedIn | Registered owner metric imports; no automated general lookup yet | Authenticated aggregate export |
 | VRChat, Steam, PlayStation, Spotify listener profile | Official profile links only; no configured audience counters | Profile directory |
+
+Twitch counters come from [DecAPI's documented endpoints](https://docs.decapi.me/twitch),
+not a Twitch-page scraper. DecAPI uses its own upstream access: no platform key
+is required from this Worker, but this is still an external data dependency.
+Its [upstream cache](https://docs.decapi.me/cached-endpoints) is two minutes for
+followers and five minutes for viewers. Our retrieval timestamp is not proof of
+the upstream measurement time. The media kit additionally checks its relay every
+five minutes while visible; this is near-live polling, not second-by-second data.
+Public counters expire after ten minutes without a successful retrieval. A
+provider error is unknown, never zero; only its exact offline reply becomes zero.
 
 The second TikTok profile is listed but not connected. A shared username is not
 proof that two accounts belong to the same person. This service does not search
@@ -167,7 +177,8 @@ not independently API-verified. Never put the import token in a browser widget.
   namespaces so public refreshes cannot overwrite richer imported analytics.
 - KV is eventually consistent; allow at least a minute for propagation. This is
   not a multi-writer transaction system. Serialize exports for each profile too.
-- The hourly cron refreshes registered GitHub/Bluesky handles. The site's hourly
+- An additional five-minute cron refreshes Sammy's Twitch counters. The hourly
+  cron refreshes registered GitHub/Bluesky handles. The site's hourly
   collector independently publishes its other authorized data.
 - Reads are limited to 60/minute per IP; provider refreshes share a 10/minute
   budget per Cloudflare location. These are approximate per-location controls,

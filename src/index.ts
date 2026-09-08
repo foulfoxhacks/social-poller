@@ -1,6 +1,6 @@
 import {apiSchema} from './openapi.ts';
 import {timingSafeEqual} from 'node:crypto';
-import {fields,names,owners,OWNER,empty,freshness,fromLegacy,toLegacy,exportedProfile,input,object,metricKeys} from './model.ts';
+import {fields,names,owners,OWNER,empty,freshness,fromLegacy,toLegacy,exportedProfile,input,object,metricKeys,PUBLIC_PROVIDERS,refreshInterval} from './model.ts';
 import {boundedText} from './providers.ts';
 import {creator,saveCreator,saveExport,lookup} from './service.ts';
 import {page,css,embedScript} from './ui.ts';
@@ -44,7 +44,7 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(u.pathname==='/motion.js')return new Response(motionScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
  if(u.pathname==='/embed.js')return new Response(embedScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
  if(u.pathname==='/widget-refresh.js')return new Response("(()=>{const refresh=()=>{if(!document.hidden)location.reload();};setInterval(refresh,300000);})();",{headers:{'content-type':'text/javascript; charset=utf-8'}});
- if(u.pathname==='/v1/platforms')return json({platforms:Object.entries(fields).map(([id,metrics])=>({id,name:names[id],metrics,lookup:['github','bluesky'].includes(id)?'public_api':metrics.length?'connected_snapshot_or_owner_export':'profile_only',scraping:false}))});
+ if(u.pathname==='/v1/platforms')return json({platforms:Object.entries(fields).map(([id,metrics])=>({id,name:names[id],metrics,lookup:id==='twitch'?'third_party_api':PUBLIC_PROVIDERS.includes(id)?'public_api':metrics.length?'connected_snapshot_or_owner_export':'profile_only',refreshIntervalSeconds:PUBLIC_PROVIDERS.includes(id)?refreshInterval(id)/1000:null,scraping:false}))});
  if(u.pathname==='/openapi.json')return json(apiSchema());
  if(u.pathname===`/v1/media-kit/${OWNER}`){const saved=await creator(env);return saved.length?json(toLegacy(saved)):json({error:'snapshot_not_ready'},503);}
  if(u.pathname===`/v1/creators/${OWNER}`){const saved=await creator(env);return json({schemaVersion:1,creator:OWNER,profiles:Object.entries(owners).map(([id,name])=>freshness(saved.find(p=>p.platform===id&&p.username===name)||empty(id,name))),note:'Known official accounts only. Audience sums are not unique people.'});}
@@ -89,10 +89,10 @@ export default {
   if(request.method==='HEAD')await response.body?.cancel();
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
  },
- async scheduled(_event,env){
-  for(const platform of ['github','bluesky'])await lookup(env,platform,owners[platform],true);
-  await record(env,await creator(env));
-  await prune(env);
-  console.log(JSON.stringify({event:'scheduled_refresh',providers:2}));
+ async scheduled(event,env){
+  const platforms=event.cron==='*/5 * * * *'?['twitch']:['github','bluesky'];
+  for(const platform of platforms)await lookup(env,platform,owners[platform],true);
+  if(event.cron!=='*/5 * * * *'){await record(env,await creator(env));await prune(env);}
+  console.log(JSON.stringify({event:'scheduled_refresh',providers:platforms}));
  }
 } satisfies ExportedHandler<Env>;

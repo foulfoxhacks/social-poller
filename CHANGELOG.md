@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.0 follow-up — keyless Twitch counters
+
+- Added a documented DecAPI adapter for public follower and concurrent-viewer
+  counts, available through the existing profile API, creator relay and widgets.
+- Resolved numeric identities, pinned Sammy's ID, bounded responses and strict
+  counter parsing prevent error pages and another account from becoming metrics.
+- Added a five-minute Twitch schedule/cache and ten-minute source expiry.
+  Source labels identify third-party cached data; no instantaneous-data promise.
+- Same-source failures retain dated stale values; existing authorized imports
+  stay independent. No new secrets, browser sessions or platform bypasses.
+- YouTube/TikTok totals remain unavailable: no unverified alternative was enabled.
+  Thirty-one unit tests, generated types and deployment dry run passed.
+- Deployed and verified the profile API, creator bundle and persisted follower
+  history. Twenty-six responsive widget/browser cases passed.
+
 ## 0.2.0 follow-up — creator embed design
 
 - Added an opt-in `theme=creator` widget style matching Sammy's copper/gold

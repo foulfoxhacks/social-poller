@@ -1,9 +1,11 @@
-export type SourceKind = 'public_api' | 'authorized_api' | 'owner_export';
+export type SourceKind = 'public_api' | 'authorized_api' | 'owner_export' | 'third_party_api';
 export type Metric = {value:number|null; observedAt:string|null; current:boolean; precision:'exact'|'rounded'|'sample'; scope:string; source:{kind:SourceKind;url:string}; sampleSize?:number|null};
 export type Breakdown = {rows:{key:string;label:string;percent:number}[]; sampledAt:string|null;current:boolean;window:string};
 export type Profile = {schemaVersion:1;platform:string;username:string;profileUrl:string;checkedAt:string;status:string;metrics:Record<string,Metric>;demographics?:Record<string,Breakdown>;reason?:string};
 export const SIX_HOURS=6*60*60*1000;
 export const TEN_MINUTES=10*60*1000;
+export const PUBLIC_PROVIDERS=['github','bluesky','twitch'];
+export const refreshInterval=(platform:string)=>platform==='twitch'?5*60*1000:TEN_MINUTES;
 export const OWNER='akasammythepuppy';
 export const OWNER_KEY='creator:'+OWNER;
 export const fields:Record<string,string[]>={
@@ -39,7 +41,7 @@ export function empty(platform:string,username:string,now=new Date().toISOString
 }
 export function freshness(profile:Profile,now=Date.now()):Profile {
   const copy=structuredClone(profile);
-  for(const m of Object.values(copy.metrics))m.current=m.current&&m.value!==null&&m.observedAt!==null&&now-Date.parse(m.observedAt)>=0&&now-Date.parse(m.observedAt)<=SIX_HOURS;
+  for(const m of Object.values(copy.metrics))m.current=m.current&&m.value!==null&&m.observedAt!==null&&now-Date.parse(m.observedAt)>=0&&now-Date.parse(m.observedAt)<=(m.source.kind==='third_party_api'?TEN_MINUTES:SIX_HOURS);
   for(const b of Object.values(copy.demographics||{}))b.current=b.current&&!!b.sampledAt&&now-Date.parse(b.sampledAt)>=0&&now-Date.parse(b.sampledAt)<=SIX_HOURS;
   const values=Object.values(copy.metrics);const available=values.filter(m=>m.current).length;
   copy.status=available?(available===values.length?'current':'partial'):values.some(m=>m.value!==null)?'stale':'unavailable';

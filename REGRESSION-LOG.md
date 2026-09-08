@@ -1,5 +1,21 @@
 # Regression log
 
+## Keyless Twitch collection
+
+- Preflight: documented DecAPI endpoints returned a resolved owner ID, 25
+  followers and an explicit offline reply. Its robots policy allows access.
+  The configured YouTube feed returned 404; no replacement source was invented.
+- Six new tests cover identity, redirects, HTTP-200 errors, body limits, offline
+  zero, partial failure, cache expiry, source labels and creator relay merging.
+  All 31 unit tests, generated types and dry run passed before deployment.
+- API reads are rate-limited and cached. The five-minute cron only refreshes
+  Twitch; the original hourly GitHub/Bluesky and history maintenance remain.
+- Deployed version f0bcb17a-3af9-4085-9085-834f2e5b2510. Live lookup, creator
+  bundle, capability metadata and D1 follower history returned 200 with attributed
+  Twitch counts. All 26 responsive widget cases passed, including Twitch's
+  profile, creator-styled cards and history, plus search, no-JS and reduced motion.
+- No YouTube/TikTok counter success is claimed.
+
 ## Creator embed theme follow-up
 
 - Added a presentation-only creator theme; no storage, authorization, collection
