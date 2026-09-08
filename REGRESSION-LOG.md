@@ -25,6 +25,11 @@
   following field. Read-time normalization now adds null defaults without
   changing dates, values, source attribution, reports or stored records. Added
   a service/relay regression case for this pre-existing-cache compatibility.
+- Follow-up: all 44 tests, generated types, TypeScript and dry run pass. Deployed
+  code 24fd9ee as version 6a142544-f73d-4f4d-b8a9-6b50db98eb54. Live X profile,
+  creator bundle, site relay and X widget now include following as unknown;
+  existing Twitch provenance is retained. Public repository CI passed for both
+  implementation commits. No migration, provider payment or real data import.
 
 ## Paused provider draft — 2026-09-08
 

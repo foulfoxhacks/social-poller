@@ -19,6 +19,8 @@
 - All 44 unit/CLI tests, generated types, TypeScript and deployment dry run pass.
   Parser coverage uses synthetic fixtures; real saved-page validation is pending
   owner input. No missing creator counts have been filled or fabricated.
+- Deployed the field compatibility update and verified public profiles, widgets
+  and both creator relays; recorded successful CI and live regression results.
 
 ## Unreleased draft — provider evaluation (2026-09-08)
 
