@@ -21,3 +21,12 @@
 - Browser testing used the installed Chrome after the optional Playwright browser
   bundle was absent. The first console check found an automatic favicon request
   returning 404; added an explicit empty favicon response before re-testing.
+- Final production version c90bf9f2-12a7-4031-9169-721848fdd8b0 uses required
+  import-secret configuration and visible-widget refreshes. All 15 unit tests,
+  generated types, TypeScript and deployment dry run passed again.
+- Live Chrome checks passed eight pages/viewport combinations at 320 and 1440px,
+  eight axe scans, console checks and exact-handle form submission. Screenshots
+  were visually reviewed; no horizontal overflow or detected violations.
+- Public repository CI run 34176399804 passed. Creator workflow 34176494518
+  successfully published seven sanitized platform snapshots through the import
+  API. Its platform credentials were not transferred to this repository/Worker.
