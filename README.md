@@ -105,6 +105,29 @@ framework or platform script is loaded. The creator site loads displays on reque
 
 ## API and widgets
 
+### Other creators can use this backend
+
+The read-only lookup and widget routes are not limited to Sammy. Twitch, GitHub
+and Bluesky accept any valid exact public username/handle. For example:
+
+```text
+GET SERVICE/v1/profiles/twitch/twitch
+GET SERVICE/v1/search?platform=twitch&username=twitch
+GET SERVICE/widget?platform=twitch&username=twitch&view=ticker
+```
+
+No visitor API key or platform login is required for these public reads. Results
+are cached and rate-limited; this is not unlimited or instantaneous collection.
+Twitch lookups refresh on demand after five minutes, and visible widgets check
+again every five minutes. Only registered owner profiles receive background
+collection and permanent history. Arbitrary searches do not enroll someone in
+tracking. Other platforms' missing fields remain unavailable, not estimated.
+
+The backend presents a common schema; it does not remove upstream dependencies.
+Private insights and owner imports are not a public multi-tenant authorization
+system. Adding creator enrollment, private analytics, or additional providers
+requires explicit ownership/consent, credential isolation and quota controls.
+
 Live service: https://social-poller.kc3wca.workers.dev . Replace `SERVICE` below
 with that origin (or your own deployed Worker origin).
 

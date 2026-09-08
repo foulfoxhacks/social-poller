@@ -14,6 +14,9 @@
   Thirty-one unit tests, generated types and deployment dry run passed.
 - Deployed and verified the profile API, creator bundle and persisted follower
   history. Twenty-six responsive widget/browser cases passed.
+- Verified a second public Twitch identity through the same backend and added
+  reusable lookup/widget examples. Clarified on-demand public refresh versus
+  registered-owner schedules/history; no new platform coverage is implied.
 
 ## 0.2.0 follow-up — creator embed design
 

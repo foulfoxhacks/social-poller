@@ -15,6 +15,11 @@
   Twitch counts. All 26 responsive widget cases passed, including Twitch's
   profile, creator-styled cards and history, plus search, no-JS and reduced motion.
 - No YouTube/TikTok counter success is claimed.
+- General lookup check: /v1/profiles/twitch/twitch returned the official Twitch
+  account's resolved numeric ID 12826 and attributed counts. This is separate
+  from Sammy's pinned ID. The creator observation advanced from 03:35 to 03:46
+  UTC without a site rebuild, confirming independent refresh. Public lookup
+  requires no visitor token and does not create permanent arbitrary-user history.
 
 ## Creator embed theme follow-up
 
