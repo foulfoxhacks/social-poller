@@ -1,0 +1,8 @@
+ARG NODE_IMAGE=docker.io/library/node@sha256:4caaaf42195bcd6f6f3559a413b20cb8f8ad089e231ee874cf7701643966689f
+FROM ${NODE_IMAGE}
+ENV NODE_ENV=production NODE_OPTIONS=--max-old-space-size=96
+WORKDIR /app
+COPY snapshot.mjs server.mjs ./
+USER node
+EXPOSE 8080
+CMD ["node", "server.mjs"]

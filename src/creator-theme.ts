@@ -1,6 +1,9 @@
 // Opt-in embed theme. Never interpolate caller-supplied CSS, colors or URLs.
 export const creatorThemeCss = `
 .theme-creator{color:#fff7e7;background:#050302;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
+.theme-creator body.widget,.theme-creator .widget footer{background:#050302;color:#d8c6b0}
+.theme-creator .metric dd,.theme-creator .series-summary strong{color:#fff7e7}
+.theme-creator .series .gridline{stroke:#644626}
 .theme-creator a,.theme-creator .eyebrow{color:#ffc857}
 .theme-creator :focus-visible{outline:3px solid #ffc857;outline-offset:4px}
 .theme-creator .profile,.theme-creator .notice,.theme-creator .doc{border:1px solid #7d592c;border-radius:0;background:linear-gradient(150deg,#1f1109,#080402)}

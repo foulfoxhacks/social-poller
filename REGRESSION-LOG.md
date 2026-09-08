@@ -1,5 +1,104 @@
 # Regression log
 
+## VPS operations container — 2026-09-08
+
+- Used the owner's supplied SSH access to inspect the dedicated Ubuntu 24.04
+  VPS. One CPU, approximately 2 GB RAM and 46 GB free disk; no application
+  listeners or existing container runtime. No firewall, DNS or SSH edits.
+- Installed twelve new container-runtime packages; no existing packages upgraded
+  or removed. Added one non-login service user, rootless storage, release/state
+  directories and a user Quadlet. Disabled only newly installed rootful Podman
+  service/socket and automatic-update timer; no existing service replaced.
+- Initial non-root commands inherited an inaccessible working directory and
+  root session bus. Corrected the working directory and explicit service-user
+  runtime/bus environment; rootless mode and systemd cgroups then verified.
+- Five new tests passed: field allowlists/provenance, missing vs zero, old/future
+  rejection, bounded fixed-source fetching, publication withdrawal, seven-day
+  retention, slot deduplication, preservation of unrelated files and 503 states.
+  All 61 repository tests, TypeScript and both Worker dry-run builds passed.
+- Restricted Wrangler compiler access failed on ancestor-directory access;
+  scoped unsandboxed dry runs passed. Logs remain in ignored `.evidence/`.
+- Release transfer SHA-256 matched at both ends. Official Node image digest
+  pinned in Containerfile; build completed without runtime dependencies.
+- Real collection succeeded at 06:37 UTC. Container runs as UID/GID 1000 with
+  read-only rootfs, 192 MiB memory limit, CPU quota 25000/100000 and 64 PIDs.
+  Listening socket is only 127.0.0.1:9081; public listeners remain SSH only.
+  Snapshot files contain approved aggregate keys, not raw payloads or grants.
+- A live field-coverage check caught the query-string sanitizer omitting valid
+  Bluesky `actor` and DecAPI `id=true` attribution URLs. Added narrowly pinned
+  public URL exceptions and a regression test; arbitrary token/query fields
+  remain rejected. Release 2026-09-08.1 records this correction separately.
+- Manual service restart recovered to healthy, retained one file per time slot,
+  and denied POST with 405. The user default target includes the service and
+  lingering is enabled; no full VPS reboot was performed.
+- Final 2026-09-08.1 container is healthy. At 06:41 UTC it retained Instagram
+  totals/sample metrics, TikTok sample averages, Twitch follower/viewer counts,
+  Bluesky counters and GitHub counters with their original source dates.
+  TikTok follower totals remain absent. Full suite now passes 62 tests.
+  About 19 MB container memory was observed after startup; the 192 MiB cap,
+  quarter-CPU limit and loopback binding are enforced by the runtime.
+  Prior release/image retained for rollback; no user files deleted.
+
+## OAuth connection foundation — 2026-09-08
+
+- Added a staged vault and separate unapplied connection schema in response to
+  the user's OAuth/retention proposal. The deployed read-only Worker does not
+  import this module or expose token routes. No credentials or grants collected.
+- Tests cover authenticated encryption, tenant/account substitution, tampering,
+  null cross-tenant reads, separate sharing, reauthorization reset, bounded hold
+  periods, hourly-validation/access-expiry gates, cascade deletion, and atomic
+  browser-bound state replay prevention. Production login remains unfinished.
+- Initial vault test load failed because Node's strip-only TypeScript runner
+  does not support constructor parameter properties. Replaced them with explicit
+  class fields without changing runtime behavior or upgrading dependencies.
+- Final full suite: 56 tests passed; TypeScript passed. Secret/database handles
+  use runtime-private fields to avoid accidental serialization. Connection DB
+  schema remains unapplied and the vault is excluded from deployed entrypoints.
+
+## Stratus Social and media-kit redesign — 2026-09-08
+
+- Existing repositories began clean on main. Supplied logo preserved unchanged.
+- First local preview rejected a compatibility date newer than the installed
+  runtime. Aligned the new Worker to the supported 2026-09-04 date; no dependency
+  upgrade or production configuration change was needed for this correction.
+- Initial restricted-network check could not refresh Wrangler authentication;
+  network-enabled read-only check confirmed valid deployment access.
+- Generated both Worker binding types and TypeScript passed. Further tests,
+  browser checks and deployments pending; no success claimed for those yet.
+- Current published data confirms Instagram counters, TikTok video sample
+  metrics, Twitch public counters, Bluesky and GitHub. Missing TikTok profile
+  scope, YouTube, X and other unconnected accounts are not invented.
+- Supplied X starter: all 23 fixture/mock tests passed independently. Review in
+  X-STARTER-REVIEW.md; no live unofficial or paid X collection activated.
+- Local runtime rate-limit bindings raised opaque internal errors, including
+  on an isolated dev process. Static documentation, assets and health are now
+  independent of collection limits; API/profile reads still fail closed. Mock
+  tests cover denial and failure. Production binding behavior must be checked
+  before the creator site is pointed at the new Worker.
+- Redesigned charts separate source URL and sample size as well as source kind,
+  scope and precision. Axis bounds are explicit; missing dates remain gaps.
+- Production Stratus 28d3d728-21b0-47ed-9f31-cb218ec81471: health,
+  developer guide, capability API, Bluesky profile and creator-themed graph
+  returned 200. Production rate-limit and service bindings work; local opaque
+  binding errors did not reproduce. API/widgets are noindex; guide is indexable.
+- Existing collector chart update: 9502ae08-c440-4321-a8f2-b78e039c4001.
+  Both cron schedules and existing bindings are preserved. Dry runs, generated
+  binding types, TypeScript and 50 tests passed before these deployments.
+- Supplied/deployed-source logo SHA-256 is identical:
+  9826c3a13ec14d8a35d0bc226a5c8519788449f39ba57c538e2b29518183fff3.
+- Ten production responsive/axe/interaction checks and a no-JavaScript check
+  passed. Creator widgets retain the copper/gold theme and opt-in motion.
+- Initial Lighthouse: home 98/100/100/92, docs 100/100/100/92. The SEO deduction
+  was a browser CSP fetch violation, not malformed robots content. Allowed only
+  same-origin connections so robots and future first-party reads are accessible;
+  no external connect origins or unsafe script permissions added.
+- Final Stratus e10294df-f52b-4ce4-aa2e-458506b5efd6: homepage
+  96/100/100/100; developer guide 100/100/100/100 (mobile lab measurements).
+  Remaining homepage suggestions include original-logo transfer size and
+  render-blocking CSS; no all-100 performance claim is made. Zero layout shift.
+- Real iframe smoke test on the production creator site passed with no page
+  exceptions and the copper/gold theme. No mocked service response in this test.
+
 ## Offline saved-page parser — 2026-09-08
 
 - User approved a local parser while retaining automatic supported public sources.

@@ -5,7 +5,7 @@ import {boundedText} from './providers.ts';
 import {creator,saveCreator,saveExport,lookup} from './service.ts';
 import {page,css,embedScript} from './ui.ts';
 import {creatorThemeCss} from './creator-theme.ts';
-import {view,viewCss,motionScript} from './views.ts';
+import {view,viewCss,motionScript,chartSummaryCss} from './views.ts';
 import {history,record,prune} from './history.ts';
 
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8'}});
@@ -40,7 +40,7 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(u.pathname==='/health')return json({service:'social-poller',version:'0.2.0',status:'ok'});
  if(u.pathname==='/favicon.ico')return new Response(null,{status:204});
  if(u.pathname==='/robots.txt')return new Response('User-agent: *\nDisallow: /v1/\nDisallow: /widget\n',{headers:{'content-type':'text/plain; charset=utf-8'}});
- if(u.pathname==='/app.css')return new Response(css+viewCss+creatorThemeCss,{headers:{'content-type':'text/css; charset=utf-8'}});
+ if(u.pathname==='/app.css')return new Response(css+viewCss+chartSummaryCss+creatorThemeCss,{headers:{'content-type':'text/css; charset=utf-8'}});
  if(u.pathname==='/motion.js')return new Response(motionScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
  if(u.pathname==='/embed.js')return new Response(embedScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
  if(u.pathname==='/widget-refresh.js')return new Response("(()=>{const refresh=()=>{if(!document.hidden)location.reload();};setInterval(refresh,300000);})();",{headers:{'content-type':'text/javascript; charset=utf-8'}});

@@ -1,4 +1,17 @@
-# Social Poller
+# Stratus Social / Social Poller backend
+
+[Stratus Social](https://stratus-social.kc3wca.workers.dev/) is the separately
+deployed branded explorer. See its [developer guide](https://stratus-social.kc3wca.workers.dev/docs/)
+and [release notes](STRATUS-RELEASE.md). The existing `social-poller` Worker and
+repository name remain compatible with creator-site integrations.
+
+Creator-authorized connections are a [staged OAuth foundation](OAUTH-CONNECTIONS.md),
+not an enabled login. The [supplied X starter review](X-STARTER-REVIEW.md) documents
+why that experimental adapter is not part of the deployed collector yet.
+
+The [VPS operations container](operations/vps/README.md) maintains a private,
+seven-day copy of selected already-public metrics on a fifteen-minute schedule.
+It does not add platform access or move the working services off Cloudflare.
 
 A separate Cloudflare Worker for exact social-profile lookup, source-labeled
 statistics, embeddable cards, and an authenticated creator-metrics relay.

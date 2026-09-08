@@ -9,7 +9,10 @@
     "import:export": "node tools/import-export.mjs",
     "dev": "wrangler dev",
     "types": "wrangler types",
-    "check": "wrangler types && tsc --noEmit",
+    "check": "wrangler types && wrangler types -c wrangler.stratus.jsonc --env-interface StratusEnv stratus-configuration.d.ts && tsc --noEmit",
+    "dev:stratus": "wrangler dev -c wrangler.stratus.jsonc",
+    "build:stratus": "wrangler deploy -c wrangler.stratus.jsonc --dry-run",
+    "deploy:stratus": "wrangler deploy -c wrangler.stratus.jsonc",
     "test": "node --test tests/*.test.ts",
     "build": "wrangler deploy --dry-run",
     "deploy": "wrangler deploy"

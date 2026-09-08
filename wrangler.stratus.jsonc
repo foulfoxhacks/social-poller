@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "stratus-social",
+  "main": "src/stratus.ts",
+  "compatibility_date": "2026-09-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "services": [{"binding":"COLLECTOR","service":"social-poller"}],
+  "assets": {"directory":"./stratus-public","binding":"BRAND_ASSETS","run_worker_first":true},
+  "ratelimits": [{"name":"STRATUS_READ_LIMIT","namespace_id":"908003","simple":{"limit":60,"period":60}}],
+  "observability": {"enabled":true,"head_sampling_rate":0.1}
+}

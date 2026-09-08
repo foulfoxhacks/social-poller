@@ -1,5 +1,29 @@
 # Changelog
 
+## Stratus Social beta — 2026-09-08
+
+- Added an isolated rootless VPS snapshot container: fixed public source,
+  fifteen-minute cadence, seven-day bounded private storage, local-only health,
+  resource limits and systemd restart/boot configuration. Existing Cloudflare
+  site, collectors and schedules remain unchanged. No platform tokens involved.
+- Extended CI to dry-run both Worker entrypoints as well as the full test suite.
+- Added a separate read-only Stratus Worker with the supplied original logo,
+  profile explorer, source-aware displays, connection matrix and API guide.
+- Reuses the collector through a fixed public-route service binding; no new
+  provider tokens, paid calls, write access or duplicate polling schedules.
+- Public informational routes are indexable; queries, APIs and embeds are not.
+  YouTube redistribution is disabled in this new surface pending policy review.
+- Validation and deployment results are tracked in REGRESSION-LOG.md.
+- Shared history charts now label their axis range and first/latest observations,
+  and separate source URLs and sample sizes. Missing dates remain gaps.
+- Reviewed the supplied X starter (23 passing tests); it is not enabled for
+  collection or redistribution. See X-STARTER-REVIEW.md for integration gaps.
+- Began the requested OAuth model as a staged private connection vault: encrypted
+  tenant-bound grants, hashed one-time browser state, explicit 1/7/30-day hold
+  choices, private-by-default sharing, expiry gates and cascade deletion.
+  No connection DB migration or login/token handler is enabled in production;
+  OAUTH-CONNECTIONS.md records the remaining session, exchange and lifecycle work.
+
 ## 0.2.0 follow-up — offline public-profile parser (2026-09-08)
 
 - Added a preview-first local HTML parser for explicitly supplied public profile

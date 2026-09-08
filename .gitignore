@@ -4,6 +4,7 @@ imports/
 .dev.vars*
 .env*
 worker-configuration.d.ts
+stratus-configuration.d.ts
 .evidence/
 dist/
 *.log

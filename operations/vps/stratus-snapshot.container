@@ -1,0 +1,31 @@
+[Unit]
+Description=Stratus private public-metric snapshot worker
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Container]
+Image=localhost/stratus-snapshot:2026-09-08.1
+Pull=never
+ContainerName=stratus-snapshot
+UserNS=keep-id:uid=1000,gid=1000
+User=1000
+Group=1000
+Network=slirp4netns
+PublishPort=127.0.0.1:9081:8080
+Volume=/opt/stratus-social/state:/data:rw
+ReadOnly=true
+ReadOnlyTmpfs=false
+Tmpfs=/tmp:rw,noexec,nosuid,nodev,size=16m
+DropCapability=all
+NoNewPrivileges=true
+PidsLimit=64
+PodmanArgs=--memory=192m --memory-swap=192m --cpus=0.25 --log-driver=k8s-file --log-opt=max-size=1mb
+
+[Service]
+Restart=always
+RestartSec=30
+TimeoutStartSec=60
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target
