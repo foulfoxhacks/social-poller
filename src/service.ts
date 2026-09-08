@@ -45,6 +45,12 @@ export async function lookup(env:Env,platform:string,username:string,force=false
   const cached=await env.SNAPSHOTS.get<Profile>(key,'json')||undefined;
   const imported=owners[platform]===username?(await creator(env)).find(p=>p.platform===platform):undefined;
   const saved=cached?combine(imported,cached):imported;
+  // The enrolled GitHub account already arrives from the authenticated hourly
+  // publisher. Reuse that valid snapshot instead of consuming anonymous quota.
+  if(platform==='github'&&username===owners.github&&imported){
+    const current=freshness(imported);
+    if(Object.values(current.metrics).every(m=>m.current&&m.source.url==='https://akasammythepuppy.me/assets/data/media-kit.json'))return current;
+  }
   if(!PUBLIC_PROVIDERS.includes(platform)&&!(platform==='x'&&username===owners.x&&force)) {
     if(cached?.reason==='profile_not_public')return freshness(cached);
     const result=freshness(saved||empty(platform,username));

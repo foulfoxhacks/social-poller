@@ -1,5 +1,15 @@
 # Changelog
 
+## Independent collection recovery — 2026-09-08
+
+- A failed independent lookup no longer suppresses a valid published observation;
+  its original source and timestamp remain intact. Expired/same-source failures
+  remain stale and explicit privacy withdrawals still clear available data.
+- Reuse the enrolled creator's valid authenticated GitHub publisher snapshot
+  instead of consuming anonymous request quota again. Other profile lookups and
+  collector schedules are unchanged. All 76 tests, generated binding/TypeScript
+  checks and the Worker deployment dry-run pass.
+
 ## Platform content expansion — 2026-09-08
 
 - Removed LinkedIn from the supported statistics dataset, owner registry and

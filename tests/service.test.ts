@@ -43,6 +43,22 @@ test('same-source failures retain old values as stale; independent sources retai
  const next=empty('github','example');assert.equal(merge(p,next).metrics.stars.current,false);assert.equal(combine(p,next).metrics.stars.current,true);
  assert.throws(()=>combine(p,empty('github','other')),/identity/);
 });
+
+test('failed anonymous lookup cannot suppress an independent valid published snapshot',async()=>{
+ const {env,data}=setup(),older=new Date(Date.now()-3600000).toISOString(),newer=new Date(Date.now()-1800000).toISOString();
+ const published=empty('github',owners.github,older),failed=empty('github',owners.github,now());
+ for(const m of Object.values(published.metrics))Object.assign(m,{value:4,observedAt:older,current:true,source:{kind:'public_api',url:'https://akasammythepuppy.me/assets/data/media-kit.json'}});
+ for(const m of Object.values(failed.metrics))Object.assign(m,{value:4,observedAt:newer,current:false,source:{kind:'public_api',url:'https://api.github.com/users/foulfoxhacks'}});
+ failed.reason='upstream_limited';data.set(OWNER_KEY,JSON.stringify([published]));data.set(`lookup:github:${owners.github}`,JSON.stringify(failed));
+ const result=await creator(env);assert.equal(result[0].metrics.followers.current,true);assert.equal(result[0].metrics.followers.observedAt,older);
+ const fetch=globalThis.fetch;globalThis.fetch=async()=>{throw Error('Must reuse the existing publisher, not perform anonymous reads');};
+ try{const lookupResult=await lookup(env,'github',owners.github,true);assert.equal(lookupResult.metrics.followers.current,true);assert.equal(lookupResult.metrics.followers.observedAt,older);}finally{globalThis.fetch=fetch;}
+ const expired=structuredClone(published);for(const m of Object.values(expired.metrics))m.observedAt=new Date(Date.now()-SIX_HOURS-1).toISOString();
+ assert.equal(combine(expired,failed).metrics.followers.current,false);
+ const same=structuredClone(failed);for(const m of Object.values(same.metrics))m.source=published.metrics.followers.source;
+ assert.equal(combine(published,same).metrics.followers.current,false);
+ assert.equal(combine(published,{...empty('github',owners.github),reason:'profile_not_public'}).metrics.followers.value,null);
+});
 test('imports reject incomplete snapshots and strip private fields, HTML labels and unsupported demographics',()=>{
  assert.throws(()=>fromLegacy({version:1,generatedAt:now(),platforms:{}}));
  const s:any=sample();s.platforms.instagram.access_token='private';s.platforms.instagram.metrics.followers.name='private';

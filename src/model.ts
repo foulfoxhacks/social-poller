@@ -71,9 +71,12 @@ export function merge(old:Profile|undefined,next:Profile):Profile {
 export function combine(old:Profile|undefined,next:Profile):Profile {
   if(!old)return freshness(next);
   const copy=merge(old,next);
+  if(next.reason==='profile_not_public')return freshness(next);
+  const previous=freshness(old);
   for(const [key,before] of Object.entries(old.metrics)){
     const after=next.metrics[key];
-    if(before.observedAt&&(!after?.observedAt||Date.parse(before.observedAt)>Date.parse(after.observedAt)))copy.metrics[key]=structuredClone(before);
+    const independentFailure=previous.metrics[key]?.current&&after?.current===false&&(before.source.kind!==after.source.kind||before.source.url!==after.source.url);
+    if(before.observedAt&&(!after?.observedAt||Date.parse(before.observedAt)>Date.parse(after.observedAt)||independentFailure))copy.metrics[key]=structuredClone(before);
   }
   copy.demographics={...old.demographics,...next.demographics};
   return freshness(copy);

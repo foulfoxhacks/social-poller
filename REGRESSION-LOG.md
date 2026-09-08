@@ -1,5 +1,16 @@
 # Regression log
 
+## Independent GitHub publication recovery — 2026-09-08
+
+- Confirmed live anonymous lookup reports `upstream_limited` while the scheduled
+  publisher has a separate valid observation. Independent failure recovery keeps
+  the successful source and original observation time, not the failed check time.
+- Enrolled GitHub lookups reuse fresh publisher data. Tests cover no duplicate
+  fetch, independent-source failure, expiry, same-source failure and withdrawal.
+- 76 unit tests pass; generated binding types, TypeScript check and Worker dry-run
+  pass with Wrangler 4.127.1. No bindings, secrets, schemas or schedules changed.
+- Production deployment verification pending.
+
 ## VPS operations container — 2026-09-08
 
 - Used the owner's supplied SSH access to inspect the dedicated Ubuntu 24.04
