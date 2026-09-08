@@ -23,7 +23,12 @@
 - The creator kit passed twelve behavior checks. Its local Lighthouse sample
   scored 100 Performance / 100 Accessibility / 96 Best Practices / 100 SEO;
   the static-only preview lacks the Worker API route and logged its fetch error.
-  Production Lighthouse and full publisher/history integration remain pending.
+- Production creator-kit Lighthouse scored 100 in all four categories (LCP
+  1476 ms, TBT 54 ms, CLS 0). Its 26-page browser sweep and 394 HTTP checks passed.
+- Public repository CI 34179645114 passed. Creator publisher 34179474042
+  successfully wrote aggregates and D1 history; the Instagram history endpoint
+  returned a real 2026-09-08T02:16:40.216Z observation. That workflow's separate
+  upstream-health step failed on YouTube RSS 404 and retained cached posts.
 
 ## 2026-09-07 — initial service
 

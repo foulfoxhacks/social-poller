@@ -20,7 +20,11 @@
 - Matched the compatibility date to the installed runtime's supported 2026-09-04
   date; retained existing KV, scheduled collectors and import credentials.
 - Expanded the creator media kit with profile breakdowns, reporting coverage,
-  export-ready Facebook/Kick/LinkedIn panels and on-demand visual displays.
+  export-ready Facebook/Kick/LinkedIn/Reddit panels and on-demand visual displays.
+  Reddit karma remains separate from follower/subscriber audience totals.
+- Recorded successful production publishing/history writes, 14 responsive
+  widget checks and the integrated media kit's four 100-point Lighthouse scores.
+  The separate YouTube RSS failure is documented without discarding cached posts.
 
 This release does not scrape restricted platforms or claim complete coverage.
 Non-API updates need owner-exported data; scheduled connections remain available.
