@@ -41,6 +41,9 @@ export function empty(platform:string,username:string,now=new Date().toISOString
 }
 export function freshness(profile:Profile,now=Date.now()):Profile {
   const copy=structuredClone(profile);
+  // Older KV snapshots may predate newly supported fields. Add unknown defaults
+  // without rewriting saved observations, their provenance or reporting fields.
+  copy.metrics={...empty(profile.platform,profile.username,profile.checkedAt).metrics,...copy.metrics};
   for(const m of Object.values(copy.metrics))m.current=m.current&&m.value!==null&&m.observedAt!==null&&now-Date.parse(m.observedAt)>=0&&now-Date.parse(m.observedAt)<=(m.source.kind==='third_party_api'?TEN_MINUTES:SIX_HOURS);
   for(const b of Object.values(copy.demographics||{}))b.current=b.current&&!!b.sampledAt&&now-Date.parse(b.sampledAt)>=0&&now-Date.parse(b.sampledAt)<=SIX_HOURS;
   const values=Object.values(copy.metrics);const available=values.filter(m=>m.current).length;

@@ -19,6 +19,12 @@
   (54.43 KiB upload / 16.89 KiB gzip). No parser code enters the Worker bundle.
 - No user-saved page or real aggregate publication was available. Live parser
   compatibility and missing platform counts are not claimed as verified.
+- First deploy 0b3663f9-9b9a-4a0b-96ed-ef6941aebc9c passed 26 responsive widget
+  checks plus search, script embed, reduced-motion and no-JavaScript checks.
+  A separate live schema assertion caught old KV snapshots omitting the new X
+  following field. Read-time normalization now adds null defaults without
+  changing dates, values, source attribution, reports or stored records. Added
+  a service/relay regression case for this pre-existing-cache compatibility.
 
 ## Paused provider draft — 2026-09-08
 

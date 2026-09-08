@@ -11,10 +11,12 @@
 - Added explicit owner-only publication through the existing import endpoint.
   Rounded counts retain precision and dated owner-export provenance in the
   media-kit relay and history. Added X following as a supported counter.
+- Normalized older cached profiles with unknown defaults for newly supported
+  fields, preserving original observations and imported reporting fields.
 - Removed the undeployed SociaVault adapter and unapplied migration draft below
   after the owner selected a no-paid-provider route. No paid call, migration,
   provider secret or schedule was activated.
-- All 43 unit/CLI tests, generated types, TypeScript and deployment dry run pass.
+- All 44 unit/CLI tests, generated types, TypeScript and deployment dry run pass.
   Parser coverage uses synthetic fixtures; real saved-page validation is pending
   owner input. No missing creator counts have been filled or fabricated.
 

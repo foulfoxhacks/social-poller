@@ -25,6 +25,19 @@ test('null differs from zero and freshness expires without changing observation 
  const p=empty('github','example');p.metrics.followers={...p.metrics.followers,value:0,observedAt:now(),current:true};
  assert.equal(freshness(p).status,'partial');assert.equal(freshness(p,Date.now()+SIX_HOURS+1).status,'stale');assert.equal(p.metrics.followers.current,true);assert.equal(p.metrics.stars.value,null);
 });
+test('old persisted profiles gain newly supported unknown fields without changing history or imported reports',async()=>{
+ const {env,data}=setup(),observed=now(),old=empty('x',owners.x,observed);
+ delete old.metrics.following;
+ old.metrics.followers={...old.metrics.followers,value:2,observedAt:observed,current:true,source:{kind:'owner_export',url:old.profileUrl}};
+ old.metrics.periodViews={...old.metrics.followers,value:10,scope:'Reporting period: fixture'};
+ data.set(OWNER_KEY,JSON.stringify([old]));
+ const actual=await lookup(env,'x',owners.x);
+ assert.equal(actual.metrics.following.value,null);assert.equal(actual.metrics.following.observedAt,null);assert.equal(actual.metrics.following.current,false);
+ assert.deepEqual(actual.metrics.followers,old.metrics.followers);assert.deepEqual(actual.metrics.periodViews,old.metrics.periodViews);
+ assert.equal(actual.checkedAt,observed);assert.equal(Object.hasOwn(old.metrics,'following'),false);
+ assert.equal(toLegacy(await creator(env)).platforms.x.metrics.following.value,null);
+ assert.deepEqual(JSON.parse(data.get(OWNER_KEY)!),[old]);
+});
 test('same-source failures retain old values as stale; independent sources retain fresh observations',()=>{
  const p=empty('github','example');p.metrics.stars={...p.metrics.stars,value:1,observedAt:now(),current:true};
  const next=empty('github','example');assert.equal(merge(p,next).metrics.stars.current,false);assert.equal(combine(p,next).metrics.stars.current,true);
