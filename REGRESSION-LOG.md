@@ -18,6 +18,10 @@
   live on the existing Worker hostname and the owner's custom domain. Callback
   responses are 200/no-store/noindex/no-referrer. Home/docs canonicals use the
   custom domain. No user grant has been claimed as successful yet.
+- Ten custom-domain responsive/axe/interaction checks and a no-JavaScript check
+  passed. The real graph also loaded inside the creator site's production CSP,
+  without a JavaScript exception. Live preparation creates a valid handoff;
+  the private operator process is awaiting the owner's new TikTok consent.
 
 ## Independent GitHub publication recovery — 2026-09-08
 
