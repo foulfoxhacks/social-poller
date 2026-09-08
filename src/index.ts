@@ -4,6 +4,7 @@ import {fields,names,owners,OWNER,empty,freshness,fromLegacy,toLegacy,exportedPr
 import {boundedText} from './providers.ts';
 import {creator,saveCreator,saveExport,lookup} from './service.ts';
 import {page,css,embedScript} from './ui.ts';
+import {creatorThemeCss} from './creator-theme.ts';
 import {view,viewCss,motionScript} from './views.ts';
 import {history,record,prune} from './history.ts';
 
@@ -39,7 +40,7 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(u.pathname==='/health')return json({service:'social-poller',version:'0.2.0',status:'ok'});
  if(u.pathname==='/favicon.ico')return new Response(null,{status:204});
  if(u.pathname==='/robots.txt')return new Response('User-agent: *\nDisallow: /v1/\nDisallow: /widget\n',{headers:{'content-type':'text/plain; charset=utf-8'}});
- if(u.pathname==='/app.css')return new Response(css+viewCss,{headers:{'content-type':'text/css; charset=utf-8'}});
+ if(u.pathname==='/app.css')return new Response(css+viewCss+creatorThemeCss,{headers:{'content-type':'text/css; charset=utf-8'}});
  if(u.pathname==='/motion.js')return new Response(motionScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
  if(u.pathname==='/embed.js')return new Response(embedScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
  if(u.pathname==='/widget-refresh.js')return new Response("(()=>{const refresh=()=>{if(!document.hidden)location.reload();};setInterval(refresh,300000);})();",{headers:{'content-type':'text/javascript; charset=utf-8'}});
@@ -61,7 +62,7 @@ async function route(request:Request,env:Env):Promise<Response>{
   if(u.pathname.startsWith('/v1/history/'))return json(await history(env,target.platform,target.username,metric,days));
   const profile=await lookup(env,target.platform,target.username);
   const trend=wantsHistory?await history(env,target.platform,target.username,metric,days):undefined;
-  return u.pathname.startsWith('/v1/')?json(profile):new Response(page(u.origin,profile,undefined,u.pathname==='/widget',mode,trend),{headers:{'content-type':'text/html; charset=utf-8'}});
+  return u.pathname.startsWith('/v1/')?json(profile):new Response(page(u.origin,profile,undefined,u.pathname==='/widget',mode,trend,u.pathname==='/widget'&&u.searchParams.get('theme')==='creator'),{headers:{'content-type':'text/html; charset=utf-8'}});
  }
  if(u.pathname==='/')return new Response(page(u.origin),{headers:{'content-type':'text/html; charset=utf-8'}});
  return json({error:'not_found'},404);

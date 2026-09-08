@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 follow-up — creator embed design
+
+- Added an opt-in `theme=creator` widget style matching Sammy's copper/gold
+  palette, square panels and existing font stack. Default service pages keep
+  their own theme. Script embeds accept `data-theme="creator"`.
+- Theme selection is allowlisted; no custom CSS or URLs are accepted. Metrics,
+  collection, histories, freshness and API payloads are unchanged.
+
 ## 0.2.0 — 2026-09-07
 
 - Added API-free, local CSV/JSON export parsing with explicit column mapping,

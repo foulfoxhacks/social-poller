@@ -1,5 +1,17 @@
 # Regression log
 
+## Creator embed theme follow-up
+
+- Added a presentation-only creator theme; no storage, authorization, collection
+  or schema changes. Default output is unchanged apart from optional root class.
+- Added a unit comparison protecting identical metric markup and default theme;
+  extended the live browser matrix to cover warm graph/carousel/ticker displays.
+- All 25 unit tests, generated types and deployment dry run passed. Version
+  6e1dcc87-80c9-4be5-b53a-a9c4ea99bc74 deployed with existing bindings/secrets.
+  Twenty responsive widget/view combinations passed axe, console and overflow
+  checks, plus search, cross-origin embedding, reduced motion and no-JS fallback.
+  No new source connection or data import is claimed.
+
 ## 2026-09-07 — history, export parsing and visual displays
 
 - Retained separate KV source keys and the existing version-1 creator relay.

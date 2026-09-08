@@ -25,6 +25,10 @@ mapping; they do not provide automatic access to every platform or vendor format
 
 ## API-free export imports
 
+Creator-site widgets can append `&theme=creator` to `/widget` URLs, or use
+`data-theme="creator"` with the script embed, for Sammy's copper/gold styling.
+This changes presentation only, never which data is collected or returned.
+
 Download your own aggregate analytics report and keep it in the Git-ignored
 `imports/` directory. Private account archives, follower lists and messages are
 not suitable inputs. Map the report's exact column headings in a local file:
