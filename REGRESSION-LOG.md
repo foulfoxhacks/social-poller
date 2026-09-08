@@ -1,5 +1,37 @@
 # Regression log
 
+## Offline saved-page parser — 2026-09-08
+
+- User approved a local parser while retaining automatic supported public sources.
+  Public policy checks found Instagram/Facebook/X/Reddit crawler restrictions;
+  no unattended adapter, hidden endpoint, cookie reader or bypass was enabled.
+- Removed only our uncommitted, undeployed paid-provider draft. Its migration
+  was never applied; production storage and schedules are unchanged.
+- Twelve new tests exercise synthetic profile formats, exact identity, pinned
+  YouTube owner ID, private TikTok rejection, counter conflicts, dates, limits,
+  unknown values, rounded precision and old-snapshot expiry. A real CLI child
+  process with fetch disabled proves default preview is offline; another checks
+  owner-only publication rejection. No fixture is a claimed creator statistic.
+- An initial source-text assertion incorrectly matched the CLI's explanatory
+  output string; replaced it with the actual subprocess behavior check.
+- All 43 tests pass. Restricted Wrangler access failed log/compiler resolution;
+  the scoped rerun passed generated types, TypeScript and deployment dry run
+  (54.43 KiB upload / 16.89 KiB gzip). No parser code enters the Worker bundle.
+- No user-saved page or real aggregate publication was available. Live parser
+  compatibility and missing platform counts are not claimed as verified.
+
+## Paused provider draft — 2026-09-08
+
+- Started from clean main. Consulted the documented SociaVault one-credit
+  profile response contracts; no credentials or raw user payloads were saved.
+- Local adapter/model/service/config and migration draft only. Daily allowance
+  remains zero. No remote migration, provider run, deployment or spending.
+- User redirected work to an Apify review before verification. Build, generated
+  types, fixtures, budget concurrency tests, cron routing, source-separated
+  history consumers and live validation remain required before release.
+- Existing production site and Worker are unchanged. This entry records work
+  in progress, not a passing regression result or an enabled connection.
+
 ## Keyless Twitch collection
 
 - Preflight: documented DecAPI endpoints returned a resolved owner ID, 25

@@ -2,8 +2,9 @@
 
 A separate Cloudflare Worker for exact social-profile lookup, source-labeled
 statistics, embeddable cards, and an authenticated creator-metrics relay.
-**There is no social-page scraper.** No hidden endpoints, login bypasses, CAPTCHA
-workarounds, cookie harvesting, or fabricated counters are used.
+**There is no unattended social-page scraper.** An offline parser can read an
+explicitly supplied saved public profile page. No hidden endpoints, login
+bypasses, CAPTCHA workarounds, cookie harvesting, or fabricated counters are used.
 
 ## What currently works
 
@@ -32,6 +33,61 @@ The second TikTok profile is listed but not connected. A shared username is not
 proof that two accounts belong to the same person. This service does not search
 private analytics for arbitrary people. CSV/JSON exports use explicit column
 mapping; they do not provide automatic access to every platform or vendor format.
+
+## Saved public pages: no paid provider
+
+For platforms without a working automated connection, save a public profile page
+you can ordinarily view as `.html` or `.htm` into the Git-ignored `imports/`
+directory. Supply its actual capture time, including the timezone. Do not supply
+private account archives, browser profiles, cookies, session exports or messages.
+Use the public profile itself, not analytics or settings pages.
+
+```sh
+# Preview only: no network request, no upload, no execution of saved scripts.
+npm run parse:page -- imports/profile.html tiktok akasammythepuppy ACTUAL_ISO_CAPTURE_TIME
+# After checking identity, counter meanings, values and the capture time:
+npm run parse:page -- imports/profile.html tiktok akasammythepuppy ACTUAL_ISO_CAPTURE_TIME --publish
+```
+
+Replace `ACTUAL_ISO_CAPTURE_TIME` with the time you saved the page, for example an
+ISO value shaped like `YYYY-MM-DDTHH:mm:ss-04:00`. Never use today's time for an old
+saved file. Publishing uses the existing environment-only
+`SOCIAL_POLLER_IMPORT_TOKEN`; do not put it in chat or command arguments.
+
+Recognized, bounded formats (English labels where applicable):
+
+| Platform | Recognized saved content | Aggregate fields |
+| --- | --- | --- |
+| TikTok | Profile `__UNIVERSAL_DATA_FOR_REHYDRATION__` or `SIGI_STATE` JSON | Followers, following, public videos, received account likes |
+| YouTube | Identified channel `ytInitialData`, classic or modern header | Public subscribers (rounded), public videos |
+| Instagram | Exact profile canonical/OG URL and labeled description metadata | Followers, following, posts |
+| X | Exact profile canonical/OG URL and same-profile labeled links | Followers, following |
+| Facebook | **Only if present:** profile-entity JSON-LD with explicit interaction statistics | Followers and Page likes |
+
+These are parser contracts, not guarantees about every current platform layout.
+Tests use clearly synthetic fixtures; no real saved page has yet been supplied
+for validation. Translated pages, missing embedded data, login/challenge pages,
+changed layouts and unsupported formats fail explicitly. Facebook's normal page
+may not include the required JSON-LD. Use the CSV/JSON export importer below when
+a page lacks recognized counters. Do not repeatedly retry blocked remote pages.
+
+Preview can parse other exact public identities locally; publishing to this
+deployment remains restricted to registered owner accounts. Only recognized
+counters, identity, precision and the stated date reach the protected API. Raw
+HTML and unselected fields stay local. Maximum input: 8 MiB; scripts are parsed
+as data, never evaluated. Conflicting identities or counter sources are rejected.
+
+Published results flow through the existing creator relay, cards, tickers and D1
+history. They remain **owner-supplied snapshots**, not independently verified or
+live measurements. `5.5K` stays rounded, missing values stay unknown, and repeated
+imports do not invent growth or reset the capture date. Private impressions,
+reach, demographics and historical trends cannot be recovered from a public
+profile counter. Use explicit, dated analytics exports for those report fields.
+
+No Apify or SociaVault call, subscription or credit is needed. Our GitHub/Bluesky
+public adapters and documented DecAPI Twitch connection continue independently;
+the latter is still a third-party dependency. Hosting quotas and operational costs
+still exist: no-paid-provider does not mean unlimited free live data.
 
 ## API-free export imports
 

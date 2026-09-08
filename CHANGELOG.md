@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.2.0 follow-up — offline public-profile parser (2026-09-08)
+
+- Added a preview-first local HTML parser for explicitly supplied public profile
+  pages, with recognized TikTok, YouTube, Instagram, X and conditional Facebook
+  JSON-LD formats. This is not an unattended scraper or a live-data connector.
+- Enforced exact profile identity, explicit capture dates, bounded input,
+  aggregate field allowlists and conflict rejection. Saved scripts never run;
+  raw HTML, private fields, browser cookies and sessions are never uploaded.
+- Added explicit owner-only publication through the existing import endpoint.
+  Rounded counts retain precision and dated owner-export provenance in the
+  media-kit relay and history. Added X following as a supported counter.
+- Removed the undeployed SociaVault adapter and unapplied migration draft below
+  after the owner selected a no-paid-provider route. No paid call, migration,
+  provider secret or schedule was activated.
+- All 43 unit/CLI tests, generated types, TypeScript and deployment dry run pass.
+  Parser coverage uses synthetic fixtures; real saved-page validation is pending
+  owner input. No missing creator counts have been filled or fabricated.
+
+## Unreleased draft — provider evaluation (2026-09-08)
+
+- Began a disabled SociaVault public-profile adapter for TikTok, YouTube, X and
+  Facebook, with identity checks, bounded responses and aggregate-only output.
+- Drafted D1 global daily request reservations, per-profile refresh leases and
+  an additive source-separated observation table; no migration has been applied.
+- Drafted independent lookup merging, SociaVault source expiry and X following
+  counts. Default daily allowance is zero; no provider request has been made.
+- Implementation paused at the user's request to compare Apify pricing and
+  integration. The adapter, schedule, history consumers and tests are not yet
+  release-ready. Nothing in this draft is deployed or claimed as live coverage.
+
 ## 0.2.0 follow-up — keyless Twitch counters
 
 - Added a documented DecAPI adapter for public follower and concurrent-viewer

@@ -12,7 +12,7 @@ export const fields:Record<string,string[]>={
   instagram:['followers','following','posts','sampleLikes','averageLikes','averageComments'],
   tiktok:['followers','following','posts','likes','averageViews','averageLikes','averageComments'],
   youtube:['followers','posts','views'],twitch:['followers','viewers'],bluesky:['followers','following','posts'],
-  x:['followers','posts'],github:['followers','following','repositories','stars'],
+  x:['followers','following','posts'],github:['followers','following','repositories','stars'],
   facebook:['followers','likes'],kick:['followers','viewers'],reddit:['karma'],linkedin:['followers'],
   vrchat:[],steam:[],playstation:[],spotify:[]
 };

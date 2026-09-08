@@ -5,6 +5,7 @@
   "type": "module",
   "engines": {"node": ">=22.18.0"},
   "scripts": {
+    "parse:page": "node tools/parse-page.mjs",
     "import:export": "node tools/import-export.mjs",
     "dev": "wrangler dev",
     "types": "wrangler types",
