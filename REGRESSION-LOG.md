@@ -262,3 +262,7 @@
   with FxEmbed attribution and collection dates. No paid X request was made.
 - Follow-up moves X to the existing five-minute cadence, rather than collecting
   at the exact ten-minute freshness boundary; a regression locks this schedule.
+- All 69 tests, TypeScript and both Worker dry runs passed. Deployed collector
+  7e941cad-69ef-4c66-9c82-286a0884202d with both existing cron triggers retained.
+  Production creator-site checks confirm current X fields and actual source-aware
+  chart rendering; the independent hourly publisher now supplies YouTube totals.
