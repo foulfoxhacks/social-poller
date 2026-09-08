@@ -17,6 +17,8 @@ export const fields:Record<string,string[]>={
 export const owners:Record<string,string>={instagram:OWNER,tiktok:OWNER,youtube:OWNER,twitch:OWNER,bluesky:'akasammythepuppy.me',x:'akasammythepup',github:'foulfoxhacks',facebook:OWNER,kick:OWNER,reddit:'luvzfurrz01998',linkedin:'foulfoxhacks',vrchat:'usr_bd9e07ff-9706-42ca-9715-1cb5a76e3c72',steam:OWNER,playstation:'itscutiesammyowo',spotify:'2z4kruowiuhpf3w0vvhmhdpoz'};
 export const names:Record<string,string>={instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',twitch:'Twitch',bluesky:'Bluesky',x:'X',github:'GitHub',facebook:'Facebook',kick:'Kick',reddit:'Reddit',linkedin:'LinkedIn',vrchat:'VRChat',steam:'Steam',playstation:'PlayStation',spotify:'Spotify'};
 export const labels:Record<string,string>={followers:'Followers / subscribers',following:'Following',posts:'Posts / public videos',likes:'Account likes',sampleLikes:'Likes on sampled posts',averageLikes:'Average likes',averageComments:'Average comments',averageViews:'Average views',views:'Lifetime views',viewers:'Live viewers',repositories:'Public repositories',stars:'Public repository stars',karma:'Karma'};
+export const reportLabels:Record<string,string>={periodViews:'Views in reporting period',reach:'Accounts reached in reporting period',impressions:'Impressions in reporting period',engagements:'Interactions in reporting period',watchSeconds:'Watch time (seconds) in reporting period',linkClicks:'Link clicks in reporting period',shares:'Shares in reporting period',saves:'Saves in reporting period'};
+export const metricKeys=(platform:string)=>[...(fields[platform]||[]),...(fields[platform]?.length?Object.keys(reportLabels):[])];
 export function object(value:unknown):Record<string,unknown>{return value!==null&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,unknown>:{};}
 export function count(value:unknown):number|null {return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=Number.MAX_SAFE_INTEGER?value:null;}
 export function date(value:unknown):string|null {return typeof value==='string'&&Number.isFinite(Date.parse(value))&&Date.parse(value)<=Date.now()+60000?new Date(value).toISOString():null;}
@@ -92,9 +94,9 @@ export function fromLegacy(data:unknown,kind:SourceKind='authorized_api',url='ht
   return result;
 }
 export function toLegacy(profiles:Profile[]){
-  return {version:1,generatedAt:new Date(Math.max(0,...profiles.map(p=>Date.parse(p.checkedAt)))).toISOString(),platforms:Object.fromEntries(['instagram','tiktok','youtube','twitch','bluesky','x','github'].map(id=>{
+  return {version:1,generatedAt:new Date(Math.max(0,...profiles.map(p=>Date.parse(p.checkedAt)))).toISOString(),platforms:Object.fromEntries(Object.keys(owners).map(id=>{
     const p=freshness(profiles.find(p=>p.platform===id&&p.username===owners[id])||empty(id,owners[id]));
-    return [id,{checkedAt:p.checkedAt,metrics:Object.fromEntries(Object.entries(p.metrics).map(([key,m])=>[key,{value:m.value,sampledAt:m.observedAt,current:m.current,...(m.sampleSize!==undefined?{sampleSize:m.sampleSize}:{}),precision:m.precision,source:m.source}])),...(p.demographics?{demographics:p.demographics}:{})}];
+    return [id,{checkedAt:p.checkedAt,metrics:Object.fromEntries(Object.entries(p.metrics).map(([key,m])=>[key,{value:m.value,sampledAt:m.observedAt,current:m.current,...(m.sampleSize!==undefined?{sampleSize:m.sampleSize}:{}),precision:m.precision,scope:m.scope,source:m.source}])),...(p.demographics?{demographics:p.demographics}:{})}];
   }))};
 }
 export function exportedProfile(data:unknown):Profile{
@@ -103,10 +105,16 @@ export function exportedProfile(data:unknown):Profile{
   const observedAt=date(r.observedAt);if(!observedAt)throw Error('invalid_observation_date');
   const profile=empty(platform,username),metrics=object(r.metrics);
   for(const [key,value] of Object.entries(metrics)){
-    if(!fields[platform].includes(key)||count(value)===null)throw Error('invalid_metric');
+    if(!metricKeys(platform).includes(key)||count(value)===null)throw Error('invalid_metric');
     const precision=object(r.precision)[key];
     if(precision!==undefined&&!['exact','rounded','sample'].includes(String(precision)))throw Error('invalid_metric');
-    profile.metrics[key]={value:Number(value),observedAt,current:true,precision:key.startsWith('average')||key==='sampleLikes'?'sample':precision==='rounded'?'rounded':'exact',scope:scope(key),source:{kind:'owner_export',url:profile.profileUrl}};
+    let measurementScope=scope(key);
+    if(Object.hasOwn(reportLabels,key)) {
+      const period=object(r.period),start=date(period.start),end=date(period.end);
+      if(!start||!end||Date.parse(start)>Date.parse(end)||Date.parse(end)>Date.parse(observedAt))throw Error('invalid_reporting_period');
+      measurementScope=`Reporting period: ${start} to ${end}`;
+    }
+    profile.metrics[key]={value:Number(value),observedAt,current:true,precision:key.startsWith('average')||key==='sampleLikes'?'sample':precision==='rounded'?'rounded':'exact',scope:measurementScope,source:{kind:'owner_export',url:profile.profileUrl},...(key.startsWith('average')||key==='sampleLikes'?{sampleSize:count(object(r.sampleSize)[key])}:{})};
   }
   if(!Object.keys(metrics).length)throw Error('empty_export');
   return freshness(profile);

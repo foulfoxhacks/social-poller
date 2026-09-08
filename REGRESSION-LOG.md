@@ -1,5 +1,30 @@
 # Regression log
 
+## 2026-09-07 — history, export parsing and visual displays
+
+- Retained separate KV source keys and the existing version-1 creator relay.
+- Added nine tests covering local export privacy, CSV edge cases, invalid dates,
+  report periods, source merging, real SQL history, deduplication, no invented
+  graph trends, reduced-motion controls and authenticated bounded imports.
+- The initial history fixture tried to give distinct observations one identical
+  primary key; fixed the fixture to age rows while preserving distinct timestamps.
+  All 24 tests then passed. Type generation and deployment dry run passed.
+- Local Wrangler's runtime rejected the previous future compatibility date.
+  Matched the supported 2026-09-04 date. Local D1 commands still returned an
+  internal runtime error; direct SQLite schema/query tests pass, and the additive
+  migration applied successfully to the new empty remote D1 database.
+- Deployed Worker version 45c1da3e-1fa7-40de-84b8-26a9d0492d7a. Live health,
+  15-profile legacy-compatible snapshot and D1 history reads returned 200.
+- Fourteen responsive page/view combinations passed axe, console and overflow
+  checks. Search form, cross-origin script embed, reduced-motion manual controls
+  and no-JavaScript card fallback passed; screenshots were visually reviewed.
+- Added an explicit header-count bound after review found the final CSV column
+  could bypass the delimiter-time bound. Its regression assertion passes.
+- The creator kit passed twelve behavior checks. Its local Lighthouse sample
+  scored 100 Performance / 100 Accessibility / 96 Best Practices / 100 SEO;
+  the static-only preview lacks the Worker API route and logged its fetch error.
+  Production Lighthouse and full publisher/history integration remain pending.
+
 ## 2026-09-07 — initial service
 
 - Risk: public refreshes could replace richer imported counters. Fixed by keeping

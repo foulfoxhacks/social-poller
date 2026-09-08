@@ -1,4 +1,5 @@
 node_modules/
+imports/
 .wrangler/
 .dev.vars*
 .env*

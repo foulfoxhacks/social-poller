@@ -1,5 +1,6 @@
 import {empty,freshness,merge,combine,owners,OWNER_KEY,TEN_MINUTES,type Profile} from './model.ts';
 import {publicProfile} from './providers.ts';
+import {record} from './history.ts';
 
 // Independent source namespaces prevent public refreshes or manual exports from
 // overwriting the richer aggregate snapshot owned by the Actions publisher.
@@ -26,10 +27,12 @@ export async function saveCreator(env:Env,incoming:Profile[]):Promise<void> {
   // One non-cancelling Actions concurrency group serializes full publications.
   // KV has eventual visibility; it is not a transaction or multi-writer queue.
   if(existing.length&&Date.parse(existing[0].checkedAt)>Date.parse(incoming[0].checkedAt))throw Error('older_snapshot');
+  await record(env,incoming);
   await env.SNAPSHOTS.put(OWNER_KEY,JSON.stringify(incoming.map(next=>merge(existing.find(p=>p.platform===next.platform),next))));
 }
 
 export async function saveExport(env:Env,profile:Profile):Promise<void> {
+  await record(env,[profile]);
   const key=`export:${profile.platform}:${profile.username}`;
   const old=await env.SNAPSHOTS.get<Profile>(key,'json')||undefined;
   await env.SNAPSHOTS.put(key,JSON.stringify(combine(old,profile)));
@@ -58,6 +61,7 @@ export async function lookup(env:Env,platform:string,username:string,force=false
     next.reason=allowed.includes(reason)?reason:'upstream_unavailable';
   }
   next=freshness(next);
+  await record(env,[next]);
   await env.SNAPSHOTS.put(key,JSON.stringify(next),{expirationTtl:7*86400});
   return combine(imported,next);
 }

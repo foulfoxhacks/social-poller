@@ -20,8 +20,74 @@ workarounds, cookie harvesting, or fabricated counters are used.
 
 The second TikTok profile is listed but not connected. A shared username is not
 proof that two accounts belong to the same person. This service does not search
-private analytics for arbitrary people. Export ingestion is JSON, not automatic
-parsing of every vendor's CSV format.
+private analytics for arbitrary people. CSV/JSON exports use explicit column
+mapping; they do not provide automatic access to every platform or vendor format.
+
+## API-free export imports
+
+Download your own aggregate analytics report and keep it in the Git-ignored
+`imports/` directory. Private account archives, follower lists and messages are
+not suitable inputs. Map the report's exact column headings in a local file:
+
+```json
+{
+  "platform": "youtube",
+  "username": "akasammythepuppy",
+  "observedAtColumn": "Date",
+  "metrics": {"followers": "Subscribers"}
+}
+```
+
+Use this only if Subscribers is the account total, not subscribers gained in a
+period. Dates must be ISO timestamps with a timezone, or YYYY-MM-DD (midnight
+UTC). Missing values remain unknown; abbreviated 5.5K-style counts are rounded.
+
+```sh
+npm run import:export -- imports/report.csv imports/mapping.json
+# Review the sanitized preview before publishing publicly:
+npm run import:export -- imports/report.csv imports/mapping.json --publish
+```
+
+No platform API key is needed. Publishing requires SOCIAL_POLLER_IMPORT_TOKEN
+supplied securely in the environment, never a command argument or public browser.
+The CLI accepts the verified service origin only and sends at most ten sanitized
+observations per request. Only selected counts and dates are uploaded; raw files
+and unselected columns stay local. Serialize imports for the same profile.
+
+JSON input is a flat array of rows with the same mapping. Limits: 256 KiB, 366
+rows, 100 CSV columns. Only registered owner accounts can publish. No formulas
+are evaluated. No export has yet supplied the missing platform counts.
+
+Reporting fields: periodViews, reach, impressions, engagements, watchSeconds,
+linkClicks, shares, saves. They require a period object containing ISO start/end
+or startColumn/endColumn. End must precede the observation date. A fixed observedAt
+can replace observedAtColumn. multipliers: {"watchSeconds": 3600} converts hours;
+60 converts minutes. Never map period views into lifetime views. Report periods
+remain separate measurement scopes and do not contribute to follower totals.
+
+YouTube documents [analytics exports](https://support.google.com/youtube/answer/9717005).
+TikTok documents [Business Suite analytics exports](https://ads.tiktok.com/help/article/navigate-web-business-suite?lang=en).
+Availability depends on the account and platform. An export parser still needs
+owner-provided downloads; it cannot continuously fetch inaccessible private data.
+
+## Graphs, rotating cards and tickers
+
+Add view=cards, graph, carousel or ticker to a profile URL or /widget. Graphs accept
+metric=followers (or another supported field) and days=7, 30, 90 or 365. Script
+embeds accept data-view and data-metric. The history JSON route is
+/v1/history/{platform}/{username}?metric=followers&days=30.
+
+D1 records registered owners' actual observations, deduplicated by identity,
+metric, date, scope and source; the first value at an identical key is retained.
+History queries return the last daily point per scope/source/precision. Missing
+days are not interpolated, unlike scopes never share a series, and gaps over two
+days break lines. Accessible tables contain the recorded values. One point is not
+a growth trend. Retention is 400 days; earlier history is never manufactured.
+Arbitrary user searches do not create permanent analytics tracking records.
+
+Playback is opt-in with previous/next/pause controls. Reduced motion disables
+autoplay and hidden tabs stop it. Without JS all cards remain readable. No chart
+framework or platform script is loaded. The creator site loads displays on request.
 
 ## API and widgets
 
@@ -32,6 +98,7 @@ with that origin (or your own deployed Worker origin).
 GET SERVICE/?platform=github&username=foulfoxhacks
 GET SERVICE/v1/search?platform=bluesky&username=akasammythepuppy.me
 GET SERVICE/v1/profiles/github/foulfoxhacks
+GET SERVICE/v1/history/github/foulfoxhacks?metric=followers&days=30
 GET SERVICE/v1/platforms
 GET SERVICE/v1/creators/akasammythepuppy
 GET SERVICE/v1/media-kit/akasammythepuppy
@@ -114,6 +181,9 @@ npm test
 npm run check
 npm run build
 npx wrangler kv namespace create SNAPSHOTS
+npx wrangler d1 create social-poller-history
+# Set your own D1 database ID in wrangler.jsonc before applying its schema:
+npx wrangler d1 migrations apply social-poller-history --remote
 # Put the returned namespace ID in wrangler.jsonc for your deployment.
 # For a new Worker, deploy once with the required-secrets declaration omitted;
 # imports fail closed until you set IMPORT_TOKEN. Then restore that declaration.

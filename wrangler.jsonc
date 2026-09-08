@@ -2,12 +2,13 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "social-poller",
   "main": "src/index.ts",
-  "compatibility_date": "2026-09-07",
+  "compatibility_date": "2026-09-04",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
   "secrets": {"required": ["IMPORT_TOKEN"]},
   "kv_namespaces": [{"binding": "SNAPSHOTS", "id": "4b686f3fc9444cc1b2ebe6ff1bafb66f"}],
+  "d1_databases": [{"binding":"HISTORY","database_name":"social-poller-history","database_id":"2658a646-ec56-4832-b8ba-aa9f269b7e1f","migrations_dir":"migrations"}],
   "ratelimits": [
     {"name": "READ_LIMIT", "namespace_id": "907001", "simple": {"limit": 60, "period": 60}},
     {"name": "FETCH_LIMIT", "namespace_id": "907002", "simple": {"limit": 10, "period": 60}}
