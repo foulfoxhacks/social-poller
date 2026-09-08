@@ -6,8 +6,9 @@ and [release notes](STRATUS-RELEASE.md). The existing `social-poller` Worker and
 repository name remain compatible with creator-site integrations.
 
 Creator-authorized connections are a [staged OAuth foundation](OAUTH-CONNECTIONS.md),
-not an enabled login. The [supplied X starter review](X-STARTER-REVIEW.md) documents
-why that experimental adapter is not part of the deployed collector yet.
+not an enabled login. The [supplied X starter review](X-STARTER-REVIEW.md) records
+the earlier integration review. A separate bounded public-profile adapter is now
+deployed for the explicitly enrolled X identity only.
 
 The [VPS operations container](operations/vps/README.md) maintains a private,
 seven-day copy of selected already-public metrics on a fifteen-minute schedule.
@@ -28,7 +29,8 @@ bypasses, CAPTCHA workarounds, cookie harvesting, or fabricated counters are use
 | Sammy's connected Instagram | Followers, following, posts, recent-post sample likes/averages, approved aggregate age/gender/country insights | Existing authenticated hourly collector publishes sanitized aggregates |
 | Sammy's connected TikTok | Whatever the granted scopes return; currently recent-video sample averages | Existing authenticated hourly collector |
 | Twitch, exact username | Followers and concurrent viewers through DecAPI; Sammy's resolved account ID is pinned | Keyless third-party API, five-minute cache; Sammy refreshed every five minutes |
-| YouTube, X | Normalized fields ready; automated data needs their API authorization | Existing collector when configured, or owner export |
+| Sammy's enrolled public X identity | Followers, following and post totals | Bounded FxEmbed public API snapshot, five-minute schedule; no arbitrary-account collection |
+| YouTube | Normalized fields ready; the creator site's collector needs a working API key | Existing collector when configured; Stratus public redistribution remains disabled |
 | Facebook, Kick, Reddit, LinkedIn | Registered owner metric imports; no automated general lookup yet | Authenticated aggregate export |
 | VRChat, Steam, PlayStation, Spotify listener profile | Official profile links only; no configured audience counters | Profile directory |
 
@@ -269,7 +271,8 @@ not independently API-verified. Never put the import token in a browser widget.
   namespaces so public refreshes cannot overwrite richer imported analytics.
 - KV is eventually consistent; allow at least a minute for propagation. This is
   not a multi-writer transaction system. Serialize exports for each profile too.
-- An additional five-minute cron refreshes Sammy's Twitch counters. The hourly
+- An additional five-minute cron refreshes Sammy's Twitch and X counters, leaving
+  headroom before their ten-minute freshness expiry. The hourly
   cron refreshes registered GitHub/Bluesky handles. The site's hourly
   collector independently publishes its other authorized data.
 - Reads are limited to 60/minute per IP; provider refreshes share a 10/minute

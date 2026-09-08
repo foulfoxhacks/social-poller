@@ -12,6 +12,8 @@
 - YouTube history is capped at thirty days, with read-time expiry as well as
   scheduled deletion. The new Stratus public YouTube surface remains disabled.
 - Chart defaults and rotating displays prefer metrics with actual observations.
+- X refreshes on the existing five-minute schedule, leaving headroom before
+  ten-minute freshness expiry; temporary delays must not imply an audience loss.
 - Regression results are recorded in REGRESSION-LOG.md as validation completes.
 
 ## Stratus Social beta — 2026-09-08

@@ -1,12 +1,17 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {xPublicProfile} from '../src/x-public.ts';
-import {owners,freshness} from '../src/model.ts';
+import {owners,freshness,scheduledPlatforms} from '../src/model.ts';
 const user={id:'1818144246383149056',screen_name:owners.x,protected:false,followers:12,following:0,statuses:33,email:'never-publish',description:'private-unneeded'};
 const fetcher=(body:unknown,status=200):typeof fetch=>async(_url,options)=>{
  assert.equal(new Headers(options?.headers).get('authorization'),null);assert.equal(new Headers(options?.headers).get('cookie'),null);assert.equal(options?.redirect,'manual');
  return Response.json(body,{status});
 };
+
+test('enrolled X refresh cadence has headroom before its ten-minute freshness expiry',()=>{
+ assert.deepEqual(scheduledPlatforms('*/5 * * * *'),['twitch','x']);
+ assert.deepEqual(scheduledPlatforms('47 * * * *'),['github','bluesky','x']);
+});
 test('FxEmbed maps exact enrolled public counters with third-party attribution only',async()=>{
  const p=freshness(await xPublicProfile(owners.x,fetcher({code:200,user})));
  assert.equal(p.metrics.followers.value,12);assert.equal(p.metrics.following.value,0);assert.equal(p.metrics.posts.value,33);assert.equal(p.status,'current');

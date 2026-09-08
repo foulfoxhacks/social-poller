@@ -1,6 +1,6 @@
 import {apiSchema} from './openapi.ts';
 import {timingSafeEqual} from 'node:crypto';
-import {fields,names,owners,OWNER,empty,freshness,fromLegacy,toLegacy,exportedProfile,input,object,metricKeys,PUBLIC_PROVIDERS,refreshInterval} from './model.ts';
+import {fields,names,owners,OWNER,empty,freshness,fromLegacy,toLegacy,exportedProfile,input,object,metricKeys,PUBLIC_PROVIDERS,refreshInterval,scheduledPlatforms} from './model.ts';
 import {boundedText} from './providers.ts';
 import {creator,saveCreator,saveExport,lookup} from './service.ts';
 import {page,css,embedScript} from './ui.ts';
@@ -90,7 +90,7 @@ export default {
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
  },
  async scheduled(event,env){
-  const platforms=event.cron==='*/5 * * * *'?['twitch',...(new Date(event.scheduledTime).getUTCMinutes()%10===0?['x']:[])]:['github','bluesky','x'];
+  const platforms=scheduledPlatforms(event.cron);
   for(const platform of platforms)await lookup(env,platform,owners[platform],true);
   if(event.cron!=='*/5 * * * *'){await record(env,await creator(env));await prune(env);}
   console.log(JSON.stringify({event:'scheduled_refresh',providers:platforms}));

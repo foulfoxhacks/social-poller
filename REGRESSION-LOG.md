@@ -240,7 +240,7 @@
   styles, with no host overflow. The creator site's 26-route browser sweep and
   394 HTTP/cache checks passed; its media-kit mobile Lighthouse sample was
   100/100/100/100 (1.54 s LCP, 30 ms TBT, CLS 0).
-# 2026-09-08 — coverage follow-up (in progress)
+# 2026-09-08 — coverage follow-up
 
 - Baseline: public creator bundle and history APIs return valid observations,
   but daily buckets collapse same-day collection times.
@@ -255,3 +255,10 @@
 - VPS rootless snapshot service is active and healthy; last success at
   2026-09-08T07:11:50.616Z, ~18.47 MB measured memory, 15-minute cadence.
   It remains private and does not supply missing platform authorization.
+- Deployed collector fa66bd34-69eb-41a3-a75a-9fb31c11ff33 and Stratus
+  cca1931d-1cb4-4ecf-9be8-f72e85a9f8d3. Production hourly-resolution history
+  retained multiple real observations; the real cross-origin creator graph passed.
+- At 07:31 UTC the scheduled X collector published all three real public counters
+  with FxEmbed attribution and collection dates. No paid X request was made.
+- Follow-up moves X to the existing five-minute cadence, rather than collecting
+  at the exact ten-minute freshness boundary; a regression locks this schedule.

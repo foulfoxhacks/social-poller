@@ -6,6 +6,7 @@ export const SIX_HOURS=6*60*60*1000;
 export const TEN_MINUTES=10*60*1000;
 export const PUBLIC_PROVIDERS=['github','bluesky','twitch'];
 export const COLLECTED_PROVIDERS=[...PUBLIC_PROVIDERS,'x'];
+export const scheduledPlatforms=(cron:string)=>cron==='*/5 * * * *'?['twitch','x']:['github','bluesky','x'];
 export const refreshInterval=(platform:string)=>platform==='twitch'?5*60*1000:TEN_MINUTES;
 export const OWNER='akasammythepuppy';
 export const OWNER_KEY='creator:'+OWNER;
