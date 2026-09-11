@@ -13,7 +13,25 @@ test('Reddit net scores may be negative, but counts and unknown fields may not',
 test('content imports are owner-bound, bounded and strip private fields',()=>{
  assert.doesNotMatch(JSON.stringify(normalizeContent(fixture())),/SECRET|access_token/);
  for(const mutation of [{username:'other'},{posts:Array.from({length:21},()=>fixture().posts[0])},{observedAt:'2000-01-01'},{source:{kind:'authorized_api',url:'https://private.test'}}])assert.throws(()=>normalizeContent({...fixture(),...mutation}));
- for(const url of ['javascript:alert(1)','https://evil.test/post','https://www.tiktok.com:8443/post','https://www.tiktok.com/post?token=SECRET'])assert.throws(()=>normalizeContent({...fixture(),posts:[{...fixture().posts[0],url}]}));
+ for(const url of ['javascript:alert(1)','https://evil.test/post','https://www.tiktok.com:8443/post','https://www.tiktok.com/post?token=SECRET','https://www.tiktok.com/@someoneelse/video/123'])assert.throws(()=>normalizeContent({...fixture(),posts:[{...fixture().posts[0],url}]}));
+});
+test('content normalization sanitizes titles, checks time causality and sorts newest first deterministically',()=>{
+ const base=fixture(),older=new Date(now-120000).toISOString(),newer=new Date(now-30000).toISOString();
+ const posts=[
+  {...base.posts[0],id:'b',url:'https://www.tiktok.com/@akasammythepuppy/video/124',publishedAt:newer,title:' Newer\u0000 title '},
+  {...base.posts[0],id:'a',url:'https://www.tiktok.com/@akasammythepuppy/video/125',publishedAt:newer,title:'Same-time A'},
+  {...base.posts[0],id:'c',url:'https://www.tiktok.com/@akasammythepuppy/video/126',publishedAt:older,title:'Older'}
+ ];
+ const normalized=normalizeContent({...base,observedAt:new Date(now).toISOString(),posts});
+ assert.deepEqual(normalized.posts.map(post=>post.id),['a','b','c']);assert.equal(normalized.posts[1].title,'Newer  title');
+ assert.throws(()=>normalizeContent({...base,posts:[{...base.posts[0],title:'\u0000\u0001'}]}),/invalid_content/);
+ assert.throws(()=>normalizeContent({...base,posts:[{...base.posts[0],publishedAt:new Date(now+30000).toISOString()}]}),/invalid_content/);
+});
+test('same-observation corrections replace changed payloads without fabricating a zero-duration trend',async()=>{
+ let saved:any;const e={SNAPSHOTS:{get:async()=>saved||null,put:async(_k:string,v:string)=>{saved=JSON.parse(v);},delete:async()=>{saved=null;}}} as unknown as Env;
+ const first=fixture();await saveContent(e,first);const corrected=fixture();corrected.posts[0].metrics.views=125;await saveContent(e,corrected);
+ assert.equal(saved.latest.posts[0].metrics.views,125);assert.equal(saved.previous,null);
+ const unchanged=JSON.stringify(saved);await saveContent(e,corrected);assert.equal(JSON.stringify(saved),unchanged);
 });
 test('rankings retain sample meaning and need two compatible observations for gains',async()=>{
  const e=env(),first=fixture();await saveContent(e,first);let r=await content(e,'tiktok',owners.tiktok,now);assert.equal(r.posts[0].interactions,12);assert.equal(r.posts[0].change,null);
