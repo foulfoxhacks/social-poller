@@ -62,10 +62,11 @@ test('YouTube snapshots older than thirty days cannot be recorded or returned',a
 });
 test('SQL history deduplicates retries, separates sources and scopes, excludes unknown profiles and retains real times',async()=>{
  const {env,db}=database();
- const p=exportedProfile({platform:'youtube',username:owners.youtube,observedAt:at,metrics:{followers:0}});
+ const dailyAt=new Date(Date.now()-86400000);dailyAt.setUTCHours(12,0,0,0);const current=dailyAt.toISOString();
+ const p=exportedProfile({platform:'youtube',username:owners.youtube,observedAt:current,metrics:{followers:0}});
  await record(env,[p,p,empty('youtube','unrelated')]);
- let data=await history(env,'youtube',owners.youtube);assert.equal(data.points.length,1);assert.equal(data.points[0].value,0);assert.equal(data.points[0].observedAt,at);
- const older=structuredClone(p);older.metrics.followers.observedAt=new Date(Date.parse(at)-3600000).toISOString();older.metrics.followers.value=5;
+ let data=await history(env,'youtube',owners.youtube);assert.equal(data.points.length,1);assert.equal(data.points[0].value,0);assert.equal(data.points[0].observedAt,current);
+ const older=structuredClone(p);older.metrics.followers.observedAt=new Date(Date.parse(current)-3600000).toISOString();older.metrics.followers.value=5;
  await record(env,[older]);data=await history(env,'youtube',owners.youtube);assert.equal(data.points.length,1);assert.equal(data.points[0].value,0);
  const another=structuredClone(p);another.metrics.followers.source.kind='authorized_api';await record(env,[another]);
  assert.equal((await history(env,'youtube',owners.youtube)).points.length,2);
