@@ -1,5 +1,14 @@
 # Changelog
 
+## Content ingestion stabilization — 2026-09-10
+
+- Normalized bounded recent-post samples into deterministic newest-first order with stable tie-breaks.
+- Same-observation retries remain idempotent when identical, while corrected payloads now replace stale latest values without inventing zero-duration trends.
+- Tightened creator-path validation where platform permalinks identify the account, sanitized titles before validation, and rejected temporally impossible publication timestamps.
+- Preserved the existing explicit-empty replacement contract so an intentional empty sample can still remove previously published posts.
+- Made the daily-history regression test deterministic across UTC midnight instead of depending on the runner's current hour.
+- Validation run 34546116612 passed `npm test`, `npm run check`, `npm run build`, and `npm run build:stratus`.
+
 ## Custom domain and TikTok consent handoff — 2026-09-08
 
 - Main origin, documentation examples and canonical URLs use the owner's
