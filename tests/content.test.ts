@@ -52,7 +52,7 @@ test('content writes require authorization and older samples retain their own ex
  assert.equal((await worker.fetch(req(false),e,{} as ExecutionContext)).status,401);
  assert.equal((await worker.fetch(req(true),e,{} as ExecutionContext)).status,200);
  const result=await worker.fetch(new Request('https://poller.test/v1/content/tiktok/'+owners.tiktok),e,{} as ExecutionContext);assert.equal((await result.json() as any).sampleSize,1);
- const first=fixture();first.observedAt=new Date(now-3600000).toISOString();let saved:any,expiration=0;
+ const first=fixture();first.observedAt=new Date(now-3600000).toISOString();first.posts[0].publishedAt=first.observedAt;let saved:any,expiration=0;
  const bounded={SNAPSHOTS:{get:async()=>saved,put:async(k:string,v:string,opts:any)=>{saved=JSON.parse(v);expiration=opts.expiration;}}} as unknown as Env;
  await saveContent(bounded,first);const next={...fixture(),posts:[]};await saveContent(bounded,next);
  assert.deepEqual(saved.previous.posts,[]);assert.equal(expiration,Math.floor((Date.parse(first.observedAt)+86400000)/1000));
