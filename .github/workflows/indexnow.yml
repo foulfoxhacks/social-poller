@@ -1,0 +1,96 @@
+name: IndexNow
+
+# Tells Bing, Yandex, Seznam, Naver and the other IndexNow engines about the
+# Stratus Social pages. Stratus is deployed by hand (npm run deploy:stratus),
+# so run this workflow from the Actions tab after a deploy.
+#
+# The key is public by design: it is served at https://stratussocial.mellozone.site/5f8a36228da5a402e897577ab7e7ed26.txt
+# (from a route in src/stratus.ts) so the engines can verify the submission came from
+# the site owner.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      INDEXNOW_HOSTS: '[{"host":"stratussocial.mellozone.site","sitemap":"https://stratussocial.mellozone.site/sitemap.xml"}]'
+      INDEXNOW_KEY: 5f8a36228da5a402e897577ab7e7ed26
+      DEPLOY_GRACE_SECONDS: '0'
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Submit sitemap URLs
+        shell: bash
+        run: |
+          cat > indexnow.mjs <<'EOF'
+          const key = process.env.INDEXNOW_KEY;
+          const targets = JSON.parse(process.env.INDEXNOW_HOSTS); // [{host, sitemap}]
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+          await sleep(Number(process.env.DEPLOY_GRACE_SECONDS || 0) * 1000);
+
+          async function keyIsLive(host) {
+            for (let i = 0; i < 30; i++) {
+              try {
+                const r = await fetch(`https://${host}/${key}.txt`, { cache: 'no-store' });
+                if (r.ok && (await r.text()).trim() === key) return true;
+              } catch {}
+              await sleep(30_000);
+            }
+            return false;
+          }
+
+          async function sitemapUrls(url, host, seen = new Set()) {
+            if (seen.has(url) || seen.size > 50) return [];
+            seen.add(url);
+            const r = await fetch(url);
+            if (!r.ok) throw new Error(`${url} returned ${r.status}`);
+            const xml = await r.text();
+            const locs = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) =>
+              m[1].replace(/&amp;/g, '&'),
+            );
+            if (/<sitemapindex[\s>]/.test(xml)) {
+              const nested = await Promise.all(locs.map((l) => sitemapUrls(l, host, seen)));
+              return nested.flat();
+            }
+            return locs.filter((l) => {
+              try { return new URL(l).host === host; } catch { return false; }
+            });
+          }
+
+          let failed = false;
+          for (const { host, sitemap } of targets) {
+            if (!(await keyIsLive(host))) {
+              console.error(`::error::https://${host}/${key}.txt is not serving the key; skipped ${host}`);
+              failed = true;
+              continue;
+            }
+            const urls = [...new Set(await sitemapUrls(sitemap, host))].slice(0, 10_000);
+            if (!urls.length) {
+              console.error(`::warning::${sitemap} listed no URLs for ${host}`);
+              continue;
+            }
+            const res = await fetch('https://api.indexnow.org/indexnow', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ host, key, keyLocation: `https://${host}/${key}.txt`, urlList: urls }),
+            });
+            console.log(`${host}: submitted ${urls.length} URLs -> HTTP ${res.status}`);
+            if (res.status >= 400 && res.status !== 429) {
+              console.error(`::error::IndexNow rejected ${host}: ${res.status} ${await res.text()}`);
+              failed = true;
+            }
+          }
+          process.exit(failed ? 1 : 0);
+          EOF
+          node indexnow.mjs

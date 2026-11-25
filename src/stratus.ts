@@ -24,6 +24,8 @@ async function route(request:Request,env:StratusEnv):Promise<Response>{
  if(path.startsWith('/auth/tiktok/'))return env.OAUTH_HANDOFFS?tiktokHandoff(request,env.OAUTH_HANDOFFS):json({error:'connection_setup_unavailable'},503);
  if(!['GET','HEAD'].includes(request.method))return json({error:'method_not_allowed'},405);
  if(path==='/stratus-logo.png')return env.BRAND_ASSETS.fetch(new Request('https://assets.internal/stratus-logo.png'));
+ // IndexNow ownership key (public by design); see .github/workflows/indexnow.yml.
+ if(path==='/5f8a36228da5a402e897577ab7e7ed26.txt')return new Response('5f8a36228da5a402e897577ab7e7ed26',{headers:{'content-type':'text/plain; charset=utf-8'}});
  if(path==='/favicon.ico')return new Response(null,{status:204});
  if(path==='/app.css')return new Response(chartSummaryCss+stratusCss+creatorThemeCss,{headers:{'content-type':'text/css; charset=utf-8'}});
  if(path==='/motion.js')return new Response(motionScript,{headers:{'content-type':'text/javascript; charset=utf-8'}});
